@@ -1,7 +1,14 @@
 # Json Extensible Resource Configuration
->This document covers the specification detail for JERC `v0.1-beta (Jan 2023)`.
+>This document covers the specification detail for JERC `v0.2-beta (Jan 2023)`.
 
 An open-source specification of an extensible format for creating resource configurations for any purpose.
+
+## Version History
+**v0.2-beta (January 2023)**
+* Improved templating syntax
+
+**v0.1-beta (December 2022)**
+* Initial specification
 
 ## Goals
 1. Simple format (valid JSON) for modeling configuration values for any type of resource.

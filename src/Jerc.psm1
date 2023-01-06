@@ -1,8 +1,8 @@
 #
-# JERC-PWSH
+# JERC-PWSH v0.1
 # https://github.com/neoftl/jerc-pwsh
 #
-# Powershell Core 7+ implementation of Json Extensible Resource Configuration v1.0
+# Powershell Core 7+ implementation of Json Extensible Resource Configuration v0.2
 # https://github.com/neoftl/jerc-pwsh/blob/main/standard/spec.md
 #
 

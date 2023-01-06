@@ -5,6 +5,17 @@ Powershell Core implementation of Json Extensible Resource Configuration format,
 The JERC specification is [available here](jerc-spec/spec.md).
 
 ## Methods
+**`[string] Convert-JercTemplate [string]$template, [Hashtable]$resource, [string]$templateStart = '$'`**  
+Returns a text with all Jerc templates resolved for the given resource.
+
+**`[Hashtable] Get-JercResources [string]$jercFile`**  
+Returns resources with fully resolved values.
+
+**`[Hashtable] Resolve-JercFiles [string]$jercFile`**  
+Returns Jerc file structure with all files included.
+
+**`[Hashtable] Resolve-JercResources [string]$jercFile`**  
+Returns Jerc file structure with aspects resolved.
 
 ## Usage
 ### Installation
