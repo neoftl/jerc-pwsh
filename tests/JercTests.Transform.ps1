@@ -29,9 +29,11 @@ Test-JercTransformer 'JSON multiline' @{
 } '{
 	"Key1": "${Value}",
     "Key2": "{Literal}",
-    "Key3": ${True}
+    "Key3": ${True},
+    "Key4": ${?:True;false;true}
 }' '{
 	"Key1": "value",
     "Key2": "{Literal}",
-    "Key3": true
+    "Key3": true,
+    "Key4": false
 }'
