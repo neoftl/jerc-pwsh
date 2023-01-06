@@ -26,3 +26,6 @@ Test-JercParser 'Recursion' '{
 Test-JercParser 'Booleans are lowercase' '{
     "resources": { "Test": { "Actual": "{True}::{False}", "True": true, "False": false } }
 }' 'true::false'
+Test-JercParser 'Supports object content' '{
+    "resources": { "Test": { "Actual": { "SubKey": "Value" } } }
+}' "{ ""SubKey"": ""Value"" }"

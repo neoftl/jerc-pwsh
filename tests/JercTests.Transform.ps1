@@ -37,3 +37,7 @@ Test-JercTransformer 'JSON multiline' @{
     "Key3": true,
     "Key4": false
 }'
+Test-JercTransformer 'Must not parse twice' @{
+    "OK" = "FAIL";
+    "Value" = "{OK}";
+} '[${B}]' '[{Value}]'
