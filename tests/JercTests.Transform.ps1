@@ -5,6 +5,12 @@
 Test-JercTransformer 'Basic' @{
     "Value" = "value";
 } '[${Value}]' '[value]'
+Test-JercTransformer 'Doesn''t auto-escape' @{
+    "Value" = "value";
+} '[$${Value}]' '[$value]'
+Test-JercTransformer 'Can escape template' @{
+    "Value" = "value";
+} '[${{Value}]' '[${Value}]'
 Test-JercTransformer 'JSON' @{
     "Value" = "value";
 } '{ "Key": "${Value}" }' '{ "Key": "value" }'

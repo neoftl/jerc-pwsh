@@ -114,17 +114,10 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
             $idx = $rem.Length - 1
         }
         if ($idx -gt 0) {
-            $result = (_substring $rem 0 $idx)
-            $rem.Remove(0, $idx) | Out-Null
+            (shift ([ref]$result) $idx)
             return $result
         }
         
-        # "{{" - Literal brace
-        if ($rem[1] -eq '{') {
-            $rem.Remove(0, 2) | Out-Null
-            return '{'
-        }
-    
         # "{;}" - Literal semicolon
         if ($rem.Length -gt 2 -and (_substring $rem 0 3) -eq '{;}') {
             $rem.Remove(0, 3) | Out-Null
@@ -177,6 +170,10 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
 
         return $result
     }
+    function shift([ref][string]$value, [int]$count, [int]$extra = 0) {
+        $value.Value += (_substring $rem 0 $count)
+        $rem.Remove(0, $count + $extra) | Out-Null
+    }
 
     $result = ''
     while ($rem.Length) {
@@ -185,10 +182,17 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
         if ($idx -lt 0 -or $idx -ge $rem.Length - $TemplateStart.Length - 1) {
             return "$result$rem"
         }
+        (shift ([ref]$result) $idx)
+
+        # Escape
+        $end = $TemplateStart.Length + 1
+        if ($rem[$end] -eq '{') {
+            (shift ([ref]$result) $end 1)
+            continue
+        }
 
         # Parse template
-        $result += (_substring $rem 0 $idx)
-        $rem.Remove(0, $idx + $TemplateStart.Length) | Out-Null
+        $rem.Remove(0, $TemplateStart.Length) | Out-Null
         $result += (nextSymbol)
     }
     return $result
