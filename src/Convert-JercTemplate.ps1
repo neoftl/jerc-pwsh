@@ -24,7 +24,7 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
     if (-not $Text) { return '' }
     $rem = [Text.StringBuilder]$Text
 
-    function resolveKeyName() {
+    function resolveKeyName([bool]$leaveDirty = $false) {
         $keyName = (readArg $false)
         if (-not $keyName) {
             $result = "$rem"
@@ -39,7 +39,7 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
         if ($rem[0] -eq '[') {
             $result = (doSubstring $result)
         }
-        if ($rem[0] -in ';', '}') {
+        if ($rem[0] -eq ';' -or (-not $leaveDirty -and $rem[0] -eq '}')) {
             $rem.Remove(0, 1) | Out-Null
         }
 
@@ -144,7 +144,7 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
             $fn = (_substring $rem 1 ($idx - 1))
             $rem.Remove(0, $idx + 1) | Out-Null
             if (-not $_functions.ContainsKey($fn)) {
-                Write-Warning "[ConfigurationParser] Unknown function '$fn' referenced in template."
+                Write-Warning "[Jerc] Unknown function '$fn' referenced in template."
                 $rem.Clear() | Out-Null
                 return $null
             }
@@ -157,11 +157,14 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
                 $value = (doSubstring $value)
             }
             else {
-                $value = (resolveKeyName)
+                $value = (resolveKeyName $true)
             }
             $result = (&$_functions[$fn] $value $rem)
             $result = (Convert-JercTemplate $result $Resource '')
 
+            while ($rem.Length -and $rem[0] -ne '}') {
+                (readArg) | Out-Null
+            }
             if ($rem[0] -eq '}') {
                 $rem.Remove(0, 1) | Out-Null
             }

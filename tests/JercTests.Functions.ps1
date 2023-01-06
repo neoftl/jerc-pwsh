@@ -83,3 +83,6 @@ Test-JercParser 'Unknown function warning' '{
 Test-JercParser 'Function must not parse keyName as template' '{
     "resources": { "Test": { "LC:Value": "TEST", "Actual": "{:LC:Value[1,2]}" } }
 }' 'ES'
+Test-JercParser 'Too many arguments; ignored' '{
+    "resources": { "Test": { "Value": "TEST", "Actual": "{LC:Value;A;B;C}" } }
+}' 'test'
