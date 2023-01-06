@@ -2,6 +2,7 @@
 JERC defines a simple templating language that can be used in the configuration files to produce values based on other values.
 
 ## Important notes
+* Templating supports the standard JSON types: array, boolean, dictionary, null, number, string
 * In boolean comparison:
   * The following values are all considered `false`:
     * `0` (number)
@@ -19,10 +20,13 @@ JERC defines a simple templating language that can be used in the configuration 
   * `[` - Must be escaped (i.e., `{[}`)
   * `;` - Must be escaped (i.e., `{;}`)
   * `!` - Cannot be used as complete key
+* It is acceptable to treat string-literal equivalents of booleans and numbers as the typed value.  
+e.g., `"1"` and `1` are equivalent
 
 ## Syntax
 * Templates must be stored as valid string values, using `{` `}` to denote dynamic areas.
-* To place a literal `{` in a value, there must be no subsequent `}` (e.g., `"}value{"` -> `"}value{"`) or it must be escaped with `{{` (e.g., `"{{value}"` -> `"{value}"`).
+  * To place a literal `{` in a value, it should be escaped with `{{` (e.g., `"{{value}"` -> `"{value}"`).
+  * A `{` without any subsequent `}` must be treated as escaped (e.g., `"{value"` -> `"{value"`).
 * The most basic template is a [value](#values), using format `{` `key-name` `}`.
 * [Functions](#functions) are invoked using the format `{` `fn-name` `:` `key-name` ( `;` `arg` )* `}`, where each function will specify the number of arguments required.
   * An argument is a literal or another template.
@@ -30,6 +34,17 @@ JERC defines a simple templating language that can be used in the configuration 
 * [Substrings](#substrings) are placed at the end of `key-name` using format `key-name` `[` `start` [ `,` `length` ] `]`.
 * If a string value needs to be converted to its most basic (i.e., number, boolean), a preceeding `{!}` template will mark the value as a literal.
   * Note that marking something that cannot be a literal as such must generate a warning.
+
+### EBNF
+```ebnf
+template = "{", ( key-template | function-template ), "}";
+key-template = key-name, [ substring-template ];
+function-template = function-name, ":", key-template, { ";", fn-argument };
+substring-template = "[", [ "-" ], "0-9+" (*number*), [ ",", "0-9+" (*number*) ], "]";
+key-name = "..." (*any valid JSON key characters*);
+function-name = "" (*NOOP*) | "?" | "??" | "LC" | "UC" | "..." (*extensible by implementations*);
+fn-argument = template | "..." (*any valid characters*);
+```
 
 ## Values
 `{` `key-name` `}`
