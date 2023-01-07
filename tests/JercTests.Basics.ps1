@@ -28,4 +28,4 @@ Test-JercParser 'Booleans are lowercase' '{
 }' 'true::false'
 Test-JercParser 'Supports object content' '{
     "resources": { "Test": { "Actual": { "SubKey": "Value" } } }
-}' "{ ""SubKey"": ""Value"" }"
+}' "{""SubKey"":""Value""}"

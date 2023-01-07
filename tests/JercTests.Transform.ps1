@@ -39,5 +39,10 @@ Test-JercTransformer 'JSON multiline' @{
 }'
 Test-JercTransformer 'Must not parse twice' @{
     "OK" = "FAIL";
-    "Value" = "{OK}";
-} '[${B}]' '[{Value}]'
+    "Value" = "{{OK}";
+} '[${Value}]' '[{OK}]'
+Test-JercTransformer 'Outputs non-primative values' @{
+    "Value" = @{ "A" = 123 }
+} '[${Value}]' '[{
+  "A": 123
+}]'

@@ -24,6 +24,12 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
     if (-not $Text) { return '' }
     $rem = [Text.StringBuilder]$Text
 
+    function str([object]$value) {
+        if ($null -eq $value -or $value -is [string]) {
+            return $value
+        }
+        return (ConvertTo-Json $value).Replace('{', '{{')
+    }
     function resolveKeyName([bool]$leaveDirty = $false) {
         $keyName = (readArg $false)
         if (-not $keyName) {
@@ -34,7 +40,7 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
             
         $value = $Resource[$keyName]
         if ($value -is [Boolean]) { $value = $value ? "true" : "false" }
-        $result = (Convert-JercTemplate "$value" $Resource '')
+        $result = (Convert-JercTemplate (str $value) $Resource '')
 
         if ($rem[0] -eq '[') {
             $result = (doSubstring $result)

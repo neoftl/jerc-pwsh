@@ -56,3 +56,11 @@ Test-JercParser 'Aspect missing warning' '{
     "aspects": { },
     "resources": { "Test": { ".aspects": [ "One" ], "ExpectedWarning": "Reference to unknown aspect 'One'." } }
 }' '' -enabled 0
+Test-JercParser 'Values only parsed once (A)' '{
+    "aspects": { "One": { "Value": "{OK}" } },
+    "resources": { "Test": { ".aspects": [ "One" ], "OK": "FAIL", "Actual": "{{Value}" } }
+}' '{OK}' -enabled 0
+Test-JercParser 'Values only parsed once (B)' '{
+    "aspects": { "One": { "Value": "{{OK}" } },
+    "resources": { "Test": { ".aspects": [ "One" ], "OK": "FAIL", "Actual": "{Value}" } }
+}' '{OK}' -enabled 0

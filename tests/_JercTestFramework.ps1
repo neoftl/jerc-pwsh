@@ -19,7 +19,11 @@ function Test-JercParser ([string]$Title, [string]$json1, $Expected, [string]$js
             $result = (Get-JercResources "$PSScriptRoot/file1.json")
             # TODO: detect warnings
             $global:_lastTestResult = $result
-            return ($result.Test ? $result.Test.Actual : "Missing 'Test' resource.")
+            $result = ($result.Test ? $result.Test.Actual : "Missing 'Test' resource.")
+            if ($result -and -not ($result -is [string])) {
+                $result = (ConvertTo-Json $result -Compress)
+            }
+            return $result
         })
     Remove-Item "$PSScriptRoot/file1.json"
     Remove-Item "$PSScriptRoot/file2.json" -ErrorAction SilentlyContinue
