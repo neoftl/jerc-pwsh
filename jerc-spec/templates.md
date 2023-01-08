@@ -164,7 +164,20 @@ Resource
     Key1: VALUE1
 ```
 
-`"{LC:Key1}"` -> `"value1"`
+### In set: `IN`
+`{IN:` `key-name` ( `;` `value` )* `}`
+
+Returns `true` if `key-name` resolve any `value`, otherwise `false`.
+
+**Example:**  
+Given:
+```
+Resource
+    Key1: VALUE1
+```
+
+`"{IN:Key1;VALUE0;VALUE1;VALUE2}"` -> `true`
+`"{IN:Key1;VALUE3;VALUE4}"` -> `false`
 
 ### UpperCase: `UC`
 `{UC:` `key-name` `}`

@@ -85,6 +85,20 @@ Test-JercParser 'LowerCase' '{
     "resources": { "Test": { "Value": "TEst", "Actual": "{LC:Value}" } }
 }' 'test'
 
+# 'In' function
+Test-JercParser 'In (true 1)' '{
+    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;OK;A;B}" } }
+}' 'true'
+Test-JercParser 'In (true 2)' '{
+    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;OK;B}" } }
+}' 'true'
+Test-JercParser 'In (true 3)' '{
+    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;B;OK}" } }
+}' 'true'
+Test-JercParser 'In (false)' '{
+    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;B;C}" } }
+}' 'false'
+
 # 'UpperCase' function
 Test-JercParser 'UpperCase' '{
     "resources": { "Test": { "Value": "TEst", "Actual": "{UC:Value}" } }

@@ -30,6 +30,16 @@ $script:_functions = @{
     'LC' = { param ([string]$value)
         return "$value".ToLower()
     };
+    # In set: value1; value2; ...
+    'IN' = { param ([string]$value1)
+        while ($rem[0] -and $rem[0] -ne '}') {
+            $value2 = (readArg)
+            if ($value2 -eq $value1) {
+                return $true
+            }
+        }
+        return $false
+    };
     # UpperCase: value
     'UC' = { param ([string]$value)
         return "$value".ToUpper()
