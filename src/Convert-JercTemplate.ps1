@@ -149,11 +149,11 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
             }
             
             if ($rem[0] -eq '{') {
-                $rem.Remove(0, 1) | Out-Null
-                $arg = (readArg)
-                $rem.Remove(0, 1) | Out-Null
-                $value = (Convert-JercTemplate "{$arg}" $Resource '')
+                $value = (nextSymbol)
                 $value = (doSubstring $value)
+                if ($rem[0] -eq ';') {
+                    $rem.Remove(0, 1) | Out-Null
+                }
             }
             else {
                 $value = (resolveKeyName $true)
