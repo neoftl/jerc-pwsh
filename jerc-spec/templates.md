@@ -136,6 +136,21 @@ Resource
 `"{??:Key1;unknown}"` -> `"value1"`  
 `"{??:Key2;unknown}"` -> `"unknown"`
 
+### Equals: `EQ`
+`{EQ:` `key-name` `;` `value` `}`
+
+Returns `true` if `key-name` resolve to `value`, otherwise `false`.
+
+**Example:**  
+Given:
+```
+Resource
+    Key1: VALUE1
+```
+
+`"{EQ:Key1;VALUE1}"` -> `true`
+`"{EQ:Key1;VALUE2}"` -> `false`
+
 ### LowerCase: `LC`
 `{LC:` `key-name` `}`
 

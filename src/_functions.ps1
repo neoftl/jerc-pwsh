@@ -21,6 +21,11 @@ $script:_functions = @{
         if ($value -in '0', 'false') { $value = $null }
         return $value ? $value : $nullValue
     };
+    # Equals: value1; value2
+    'EQ' = { param ([string]$value1)
+        $value2 = (readArg)
+        return $value1 -eq $value2
+    };
     # LowerCase: value
     'LC' = { param ([string]$value)
         return "$value".ToLower()

@@ -66,6 +66,20 @@ Test-JercParser 'IfNull (JSON)' '{
     "resources": { "Test": { "Value": "", "Actual": "A{??:Value;[1,2]}Z" } }
 }' 'A[1,2]Z'
 
+# 'Equals' function
+Test-JercParser 'Equals (true)' '{
+    "resources": { "Test": { "Value": 1234, "Actual": "{EQ:Value;1234}" } }
+}' 'true'
+Test-JercParser 'Equals (false)' '{
+    "resources": { "Test": { "Value": 4321, "Actual": "{EQ:Value;1234}" } }
+}' 'false'
+Test-JercParser 'Equals (sub true)' '{
+    "resources": { "Test": { "Value": 1234, "Actual": "{?:{EQ:Value;1234};Yes;No}" } }
+}' 'Yes'
+Test-JercParser 'Equals (sub false)' '{
+    "resources": { "Test": { "Value": 4321, "Actual": "{?:{EQ:Value;1234};Yes;No}" } }
+}' 'No'
+
 # 'LowerCase' function
 Test-JercParser 'LowerCase' '{
     "resources": { "Test": { "Value": "TEst", "Actual": "{LC:Value}" } }
