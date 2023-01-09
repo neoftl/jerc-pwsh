@@ -78,5 +78,15 @@ Write-Output $result
 # > }
 ```
 
+### Functions
+> **NOTE:** This section is currently unimplemented
+
+In addition to the [standard functions](jerc-spec/templates.md#functions), `jerc-pwsh` provides the following functions:
+
+* `+`: `value`, `num`
+  * Add a number to a value.
+  * Example: `"{+:key;1}"` adds 1 to the value of `key`
+  * Note: If `key` does not resolve to a numeric value, `0` will be used.
+
 # TODO
 * Notes on how to install

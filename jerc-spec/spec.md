@@ -230,3 +230,8 @@ Dynamic values are resolved using the [templating language](templates.md).
   * Dropped from resource after processing?
 * Support deep-merge of JSON value structures
 * Support templates in deep-merge
+* Post-resolution key replacement
+  * After keys have been resolved, some keys are renamed to replace others
+  * e.g., { "Key1": "value", "!Key1": "{UC:Key1}" }
+  * resolves to: { "Key1": "value", "!Key1": "VALUE" }
+  * result: { "Key1": "VALUE" }
