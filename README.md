@@ -79,11 +79,18 @@ Write-Output $result
 ```
 
 ### Functions
-> **NOTE:** This section is currently unimplemented
-
 In addition to the [standard functions](jerc-spec/templates.md#functions), `jerc-pwsh` provides the following functions:
 
-* `+`: `value`, `num`
+* `~`: `key-name`
+  * Resolve the value of `key-name` as though it is a reference
+  * Example: `"{~:key}"` resolve `key` to `value` and then resolves `value` as though the template was `"{value}"`
+  * Note: If the second resolution contains escaped templates, these will be further parsed.
+    * e.g., If `value` was given as `"{{key2}"`, the result will be the value of `key2`.
+    * TODO: confirm
+
+> **NOTE:** This below is currently unimplemented
+
+* `+`: `value`; `num`
   * Add a number to a value.
   * Example: `"{+:key;1}"` adds 1 to the value of `key`
   * Note: If `key` does not resolve to a numeric value, `0` will be used.

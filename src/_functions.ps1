@@ -1,5 +1,7 @@
 # Available template functions
 $script:_functions = @{
+    ### Core functions
+
     # NOOP
     ''   = { param ([string]$value) return $value };
     # If: condition - short for "If: condition; 'true'; 'false'"
@@ -43,5 +45,12 @@ $script:_functions = @{
     # UpperCase: value
     'UC' = { param ([string]$value)
         return "$value".ToUpper()
+    };
+
+    ### Extension functions
+
+    # Self-resolve: value
+    '~' = { param ([string]$value)
+        return "{$value}"
     };
 }
