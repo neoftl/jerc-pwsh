@@ -6,11 +6,39 @@ $global:PwshTest = @{
     'ThrowExceptions' = $false;
     'TotalTestsRun'    = 0;
     'TestFailureCount' = 0;
+    'CurrentSuite'     = $null;
+    'RunSuite'            = {
+        param ([string]$Title, $Tests)
+        $PwshTest.CurrentSuite = $Title
+        (&$Tests)
+        $PwshTest.CurrentSuite = $null
+    };
     'Run'              = {
-        param ([string]$Title, $Expected, $TestLogic, [string]$FailMessage = $null)
+        param ([string]$Id, [string]$Title, $Expected, $TestLogic, [string]$FailMessage = $null)
+
+        function showTitle([bool]$clear = $false) {
+            $len = 0
+            if ($PwshTest.CurrentSuite) {
+                $len += $PwshTest.CurrentSuite.Length
+                Write-Host $PwshTest.CurrentSuite -NoNewline -ForegroundColor White
+                if ($Id) {
+                    $len += $Id.Length + 1
+                    Write-Host " $Id" -NoNewline
+                }
+                $len += 2
+                Write-Host ': ' -NoNewline
+            }
+            $len += $Title.Length
+            Write-Host $Title -NoNewline
+            if ($clear) {
+                Write-Host "$([string]::new(8, $len))" -NoNewline
+            }
+        }
+
         $PwshTest.TotalTestsRun += 1
-        Write-Host "[    ] $Title" -NoNewline
-        Write-Host "$([string]::new(8, $Title.Length + 8))" -NoNewline
+        Write-Host "[    ] " -NoNewline
+        (showTitle $true)
+        Write-Host "$([string]::new(8, 7))" -NoNewline
 
         try {
             $actual = (&$TestLogic)
@@ -31,7 +59,8 @@ $global:PwshTest = @{
         else {
             Write-Host "PASS" -NoNewline -ForegroundColor Green
         }
-        Write-Host "] $Title" -NoNewline
+        Write-Host "] " -NoNewline
+        (showTitle)
         if ($FailMessage) {
             Write-Host ": " -NoNewline
             Write-Host $FailMessage -ForegroundColor Red
