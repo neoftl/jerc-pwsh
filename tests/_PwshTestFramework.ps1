@@ -3,10 +3,12 @@
 #
 
 $global:PwshTest = @{
+    'TestIdFilter' = $null;
     'ThrowExceptions' = $false;
     'TotalTestsRun'    = 0;
     'TestFailureCount' = 0;
     'CurrentSuite'     = $null;
+    
     'RunSuite'            = {
         param ([string]$Title, $Tests)
         $PwshTest.CurrentSuite = $Title
@@ -16,6 +18,15 @@ $global:PwshTest = @{
     'Run'              = {
         param ([string]$Id, [string]$Title, $Expected, $TestLogic, [string]$FailMessage = $null)
 
+        function printResult($result, $resultColour, [bool]$clear = $false) {
+            Write-Host "[" -NoNewline
+            Write-Host $result -NoNewline -ForegroundColor:$resultColour
+            Write-Host "] " -NoNewline
+            (showTitle $clear)
+            if ($clear) {
+                Write-Host "$([string]::new(8, 7))" -NoNewline
+            }
+        }
         function showTitle([bool]$clear = $false) {
             $len = 0
             if ($PwshTest.CurrentSuite) {
@@ -35,10 +46,14 @@ $global:PwshTest = @{
             }
         }
 
+        if ($Id -and $PwshTest.TestIdFilter -and -not ($Id -imatch $PwshTest.TestIdFilter)) {
+            (printResult 'SKIP' DarkGray)
+            Write-Host
+            return
+        }
+
         $PwshTest.TotalTestsRun += 1
-        Write-Host "[    ] " -NoNewline
-        (showTitle $true)
-        Write-Host "$([string]::new(8, 7))" -NoNewline
+        (printResult '    ' Black $true)
 
         try {
             $actual = (&$TestLogic)
@@ -51,16 +66,13 @@ $global:PwshTest = @{
             $FailMessage = $Error[0]
         }
 
-        Write-Host "[" -NoNewline
         if ($FailMessage -or $actual -ne $Expected) {
-            Write-Host "FAIL" -NoNewline -ForegroundColor Red
+            (printResult 'FAIL' Red)
             $PwshTest.TestFailureCount += 1
         }
         else {
-            Write-Host "PASS" -NoNewline -ForegroundColor Green
+            (printResult 'PASS' Green)
         }
-        Write-Host "] " -NoNewline
-        (showTitle)
         if ($FailMessage) {
             Write-Host ": " -NoNewline
             Write-Host $FailMessage -ForegroundColor Red

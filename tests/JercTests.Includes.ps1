@@ -22,9 +22,15 @@
     }'  -json2 '{
         "resources": { "Test": { "Actual": "Fail" } }
     }'  -Expected "OK"
-    Test-JercParser 'I004' 'Resource collision: Nulls are not replaced' -json1 '{
+    Test-JercParser 'I004' 'Resource collision: Nulls are replaced' -json1 '{
         ".include": [ "file2.json" ],
         "resources": { "Test": { "Actual": null } }
+    }'  -json2 '{
+        "resources": { "Test": { "Actual": "OK" } }
+    }'  -Expected 'OK'
+    Test-JercParser 'I005' 'Resource collision: Can force null' -json1 '{
+        ".include": [ "file2.json" ],
+        "resources": { "Test": { "Actual": "{!}null" } }
     }'  -json2 '{
         "resources": { "Test": { "Actual": "OK" } }
     }'  -Expected $null
@@ -50,9 +56,16 @@
     }'  -json2 '{
         "aspects": { "Test": { "Actual": "Fail" } }
     }'  -Expected "OK"
-    Test-JercParser 'I103' 'Aspect collision: Nulls are not replaced' -json1 '{
+    Test-JercParser 'I103' 'Aspect collision: Nulls are replaced' -json1 '{
         ".include": [ "file2.json" ],
         "aspects": { "Test": { "Actual": null } },
+        "resources": { "Test": { ".aspects": [ "Test" ], "Actual": null } }
+    }'  -json2 '{
+        "aspects": { "Test": { "Actual": "OK" } }
+    }'  -Expected 'OK'
+    Test-JercParser 'I104' 'Aspect collision: Can force null' -json1 '{
+        ".include": [ "file2.json" ],
+        "aspects": { "Test": { "Actual": "{!}null" } },
         "resources": { "Test": { ".aspects": [ "Test" ], "Actual": null } }
     }'  -json2 '{
         "aspects": { "Test": { "Actual": "OK" } }
