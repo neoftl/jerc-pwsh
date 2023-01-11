@@ -3,47 +3,69 @@
 
 An open-source specification of an extensible format for creating resource configurations for any purpose.
 
-## Version History
+## 0. Meta information
+
+### 0.1. Version History
 **v0.2-beta (January 2023)**
 * Improved templating syntax
 
 **v0.1-beta (December 2022)**
 * Initial specification
 
-## Goals
+### 0.2. Goals
 1. Simple format (valid JSON) for modeling configuration values for any type of resource.
 2. Hierarchy of reusable and componentised files and values that is easy to trace.
 3. Simple language for defining dynamic configuration values.
 
-## Concepts
+### 0.3. Concepts
 This specification makes reference to certain internal concepts:
 * **Aspect:** A named set of configuration values that can be applied to a resource.
 * **Include:** A reference to another configuration file to be included as part of the processing.
 * **Resource:** A named set of configuration values that will be returned after processing.
 * **Template:** A piece of logic that will be transformed after processing to resolve its value.
 
-## Usage life-cycle
+### 0.4. Usage life-cycle
 1. Create resource configuration files.
 2. Process configuration files to in-memory dictionary of key-values per resource.
 3. (Out of scope of specification) Use result structures in target processes.
 
-## Implementation requirements
+### 0.5. Example use
+JERC was created to solve situations such as being able to define a single configuration file hierarchy that can be used to produce multiple outputs.
+
+**Example:**
+```mermaid
+graph LR
+    subgraph Files
+    A1[/Globals/] .->|.include| B[/Specifics/]
+    A2[/Constants/] .->|.include| B
+    end
+    subgraph Scripts
+    B -->|Resolve| C{{Memory}}
+    style C stroke-dasharray: 5 5
+    C --> S1[Script1]
+    C --> S2[Script2]
+    C --> S3[Script3]
+    end
+    S1 --> O1>Output]
+    S2 --> O2>Output]
+    S3 --> O3>Output]
+```
+
+### 0.6. Correctness
+A suite of correctness files is included in this repository to prove the accuracy of the implementation.
+
+### 0.7. Roadmap
+The list of potential features being considered is [available here](future.md).
+
+## 1. Specification
+### 1.1. Requirements
 Every implementation of the specification must meet the following criteria:
 1. Support comments in JSON files ("[jsonc](https://code.visualstudio.com/docs/languages/json#_json-with-comments)").
 2. Provide a mechanism to report warnings raised during processing.
 3. Support standard JSON types: array, boolean, dictionary, null, number, string.
 4. Relative file paths are resolved from the current file.
 
-## Suggested implementation API
-The minimum API of an implementation of the specification should provide:
-* A method that takes a single file path and returns a dictionary of all resources with the resultant configured key-values.
-
-Additional methods that make it easier for a consumer to locate issues in their files could include a way to output the state at each of the steps when processing a configuration file:
-* The list of all files that will be processed.
-* The resolved aspects and resources from all included files.
-* The resolved list of resources after applying aspects (before transformations).
-
-## File structure
+### 1.2. File structure
 Every JERC file can implement the following structure:
 ```json
 {
@@ -71,167 +93,38 @@ Every JERC file can implement the following structure:
 
 All keys are optional, and any additional keys are ignored by JERC processors.
 
-## Processing steps
+### 1.3. Processing steps
 The implementation of the specification expects a configuration file to be processed in the following order:
 1. Resolve all included files (merge aspects and resources).
+   1. Each file in the ".includes" list is processed in order, with additional values added to the start of the list.
+   2. Files can be referenced for inclusion multiple times.
+   3. A recursion loop must fail processing of the files with a suitable message.
 2. Resolve all aspects (apply other aspects).
+   1. Each aspect in the ".aspects" list is processed in order, with additional values added to the start of the list.
 3. Apply aspects to resources.
-4. Warn on unprovided values (a `null` value that is not explicitly defined in the resource).
+   1. Each aspect in the ".aspects" list is processed in order, with additional values added to the start of the list.
+4. Warn on unprovided values (an applied `null` aspect value that was not explicitly defined at the resource level).
+   - This can happen during step 3.
 5. Transform all templates.
-6. Return all resources.
+    - See the [templates documentation](templates.md).
+6. Make all resources available by name.
 
-### Key-value priority
+#### 1.3.1. Key-value priority
 When combining sets (e.g., aspect/resource collision on include, aspect applying to aspect/resource), the value of the incoming key is only taken if:
 1. the key has not been defined on the target, or
 2. the key has a value of `null` on the target.
 
 To force a `null` in to the hierarchy for a key, the `"{!}null"` [template](templates.md) will be treated like any non-`null` value until it is resolved at [step 5](#processing-steps).
 
-**Example:**
-```json
-// File1.jsonc
-{
-    "aspects": {
-        "Aspect1": {
-            "Key1": "File1.Aspect1",
-            "Key2": null,
-            "Key4": "File1.Aspect1"
-        },
-        "Aspect2": {
-            "Key3": "File1.Aspect2",
-            "Key4": null
-        }
-    },
+## 2. Implementations
+### 2.1. Implementation API
+The minimum API of an implementation of the specification should provide:
+* A method that takes a single file path and returns a dictionary of all resources with the resultant configured key-values.
 
-    "resources": {
-        "Resource": {
-            "Key5": "File1.Resource",
-            "Key6": null
-        }
-    }
-}
+Additional methods that make it easier for a consumer to locate issues in their files could include a way to output the state at each of the steps when processing a configuration file:
+* The list of all files that will be processed.
+* The resolved aspects and resources from all included files.
+* The resolved list of resources after applying aspects (before transformations).
 
-// File2.jsonc
-{
-    ".include": [ "File1.jsonc" ],
-
-    "aspects": {
-        "Aspect2": {
-            ".aspects": [ "Aspect1" ],
-            "Key1": "File2.Aspect2", // Overrides File1.Aspect1
-            "Key2": "File2.Aspect2", // Overrides File1.Aspect1
-            "Key3": null // Supplied by File1.Aspect2
-            // Key4 supplied by File1.Aspect1
-        }
-    },
-
-    "resources": {
-        "Resource": {
-            ".aspects": [ "Aspect2" ],
-            "Key2": "File2.Resource", // Overrides File2.Aspect2
-            "Key5": null, // Supplied by File1.Resource
-            "Key6": "File2.Resource" // Overrides File1.Resource
-        }
-    }
-}
-```
-```json
-// After step 1
-{
-    "aspects": {
-        "Aspect1": {
-            "Key1": "File1.Aspect1", // From File1
-            "Key2": null, // From File1
-            "Key4": "File1.Aspect1" // From File1
-        },
-        "Aspect2": {
-            ".aspects": [ "Aspect1" ],
-            "Key1": "File2.Aspect2", // From File2
-            "Key2": "File2.Aspect2", // From File2
-            "Key3": "File1.Aspect2" // From File1
-        }
-    },
-
-    "resources": {
-        "Resource": {
-            ".aspects": [ "Aspect2" ],
-            "Key2": "File2.Resource", // Overrides File2.Aspect2
-            "Key5": "File1.Resource", // From File1
-            "Key6": "File2.Resource" // From File2
-        }
-    }
-}
-```
-```json
-// After step 2
-{
-    "aspects": {
-        "Aspect1": {
-            "Key1": "File1.Aspect1", // From File1
-            "Key2": null, // From File1
-            "Key4": "File1.Aspect1" // From File1
-        },
-        "Aspect2": {
-            "Key1": "File2.Aspect2", // From File2
-            "Key2": "File2.Aspect2", // From File2
-            "Key3": "File1.Aspect2", // From File1
-            "Key4": "File1.Aspect1" // From File1
-        }
-    },
-
-    "resources": {
-        "Resource": {
-            ".aspects": [ "Aspect2" ],
-            "Key2": "File2.Resource", // Overrides File2.Aspect2
-            "Key5": "File1.Resource", // From File1
-            "Key6": "File2.Resource" // From File2
-        }
-    }
-}
-```
-```json
-// After step 3
-{
-    "resources": {
-        "Resource": {
-            "Key1": "File2.Aspect2", // From File2
-            "Key2": "File2.Resource", // Overrides File2.Aspect2
-            "Key3": "File1.Aspect2", // From File1
-            "Key4": "File1.Aspect1", // From File1
-            "Key5": "File1.Resource", // From File1
-            "Key6": "File2.Resource" // From File2
-        }
-    }
-}
-```
-
-## Correctness
-A suite of correctness files is included in this repository to prove the accuracy of the implementation.
-
-## Templating
+## 3. Templating
 Dynamic values are resolved using the [templating language](templates.md).
-
-# Future features under review
-* Remove unused aspect key on resolve
-  * e.g., "aspect": { "?key1": "value1", "?key2": "value2" } -> "resource": { ".aspects": [ "aspect" ], "a": "{key1}", "key2": null }
-  * gives: "resource": { "a": "value1", "key2": "value2" }
-* Deep template matching
-  * e.g., "key": { "sub": "value1" } via "{key.sub}"
-  * how to match "key.sub": "value2"?
-  * prefer shallow over deep? alt. "{key>sub}" for deep
-* Pull single value from non-included aspect
-  * e.g., "{key@aspect}" matches "key" on aspect
-  * escape: "{key@@aspect}" matches "key@aspect" on resource
-  * Problem: aspects removed before template parsing
-* Include aspect name in keys
-  * e.g., ".aspects": [ "normal", "+prepended" ]
-  * result A: { "key": "from-normal", "key@prepended": "from-prepended" }
-  * result B: { "key": "from-normal", "prepended": { "key: "from-prepended" } } - requires deep template matching
-  * Dropped from resource after processing?
-* Support deep-merge of JSON value structures
-* Support templates in deep-merge
-* Post-resolution key replacement
-  * After keys have been resolved, some keys are renamed to replace others
-  * e.g., { "Key1": "value", "!Key1": "{UC:Key1}" }
-  * resolves to: { "Key1": "value", "!Key1": "VALUE" }
-  * result: { "Key1": "VALUE" }
