@@ -2,115 +2,119 @@
 # Function tests
 #
 
-# 'If' function
-Test-JercParser 'If to bool (true)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "{?:Value}" } }
-}' 'true'
-Test-JercParser 'If to bool (false)' '{
-    "resources": { "Test": { "Value": null, "Actual": "{?:Value}" } }
-}' 'false'
-Test-JercParser 'If (true)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "{?:Value;Yes}" } }
-}' 'Yes'
-Test-JercParser 'If (true, variable)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "{?:Value;{Value}}" } }
-}' '1234'
-Test-JercParser 'If (true, complex)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "<{?:Value;[{Value}]}>" } }
-}' '<[1234]>'
-Test-JercParser 'IfElse (true, complex)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "<{?:Value;[{Value}];No{;} never}> - {Value}" } }
-}' '<[1234]> - 1234'
-Test-JercParser 'If (missing)' '{
-    "resources": { "Test": { "Actual": "{?:Value;Yes}" } }
-}' ''
-Test-JercParser 'If (null)' '{
-    "resources": { "Test": { "Value": null, "Actual": "{?:Value;Yes}" } }
-}' ''
-Test-JercParser 'If (empty)' '{
-    "resources": { "Test": { "Value": null, "Actual": "{?:Value;Yes}" } }
-}' ''
-Test-JercParser 'If (0)' '{
-    "resources": { "Test": { "Value": 0, "Actual": "{?:Value;Yes}" } }
-}' ''
-Test-JercParser 'If (false)' '{
-    "resources": { "Test": { "Value": false, "Actual": "{?:Value;Yes}" } }
-}' ''
-Test-JercParser 'If (false, variable)' '{
-    "resources": { "Test": { "Value": false, "Actual": "{?:Value;{Value}}" } }
-}' ''
-Test-JercParser 'If (false, complex)' '{
-    "resources": { "Test": { "Value": false, "Actual": "<{?:Value;[{Value}]}>" } }
-}' '<>'
-Test-JercParser 'IfElse (false, complex)' '{
-    "resources": { "Test": { "Value": 0, "Actual": "<{?:Value;[{Value}];No{;} never}> - {Value}" } }
-}' '<No; never> - 0'
+(&$PwshTest.RunSuite 'Functions' {
 
-# 'IfNull' function
-Test-JercParser 'IfNull (true)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "{??:Value;Yes}" } }
-}' '1234'
-Test-JercParser 'IfNull (false)' '{
-    "resources": { "Test": { "Value": false, "Actual": "{??:Value;Yes}" } }
-}' 'Yes'
-Test-JercParser 'IfNull (null)' '{
-    "resources": { "Test": { "Value": null, "Actual": "{??:Value;Yes}" } }
-}' 'Yes'
-Test-JercParser 'IfNull (0)' '{
-    "resources": { "Test": { "Value": 0, "Actual": "{??:Value;Yes}" } }
-}' 'Yes'
-Test-JercParser 'IfNull ()' '{
-    "resources": { "Test": { "Value": "", "Actual": "{??:Value;Yes}" } }
-}' 'Yes'
-Test-JercParser 'IfNull (JSON)' '{
-    "resources": { "Test": { "Value": "", "Actual": "A{??:Value;[1,2]}Z" } }
-}' 'A[1,2]Z'
+    # 'If' function
+    Test-JercParser 'F001' 'If to bool (true)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "{?:Value}" } }
+    }' 'true'
+    Test-JercParser 'F002' 'If to bool (false)' '{
+        "resources": { "Test": { "Value": null, "Actual": "{?:Value}" } }
+    }' 'false'
+    Test-JercParser 'F003' 'If (true)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "{?:Value;Yes}" } }
+    }' 'Yes'
+    Test-JercParser 'F004' 'If (true, variable)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "{?:Value;{Value}}" } }
+    }' '1234'
+    Test-JercParser 'F005' 'If (true, complex)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "<{?:Value;[{Value}]}>" } }
+    }' '<[1234]>'
+    Test-JercParser 'F006' 'IfElse (true, complex)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "<{?:Value;[{Value}];No{;} never}> - {Value}" } }
+    }' '<[1234]> - 1234'
+    Test-JercParser 'F007' 'If (missing)' '{
+        "resources": { "Test": { "Actual": "{?:Value;Yes}" } }
+    }' ''
+    Test-JercParser 'F008' 'If (null)' '{
+        "resources": { "Test": { "Value": null, "Actual": "{?:Value;Yes}" } }
+    }' ''
+    Test-JercParser 'F009' 'If (empty)' '{
+        "resources": { "Test": { "Value": null, "Actual": "{?:Value;Yes}" } }
+    }' ''
+    Test-JercParser 'F010' 'If (0)' '{
+        "resources": { "Test": { "Value": 0, "Actual": "{?:Value;Yes}" } }
+    }' ''
+    Test-JercParser 'F011' 'If (false)' '{
+        "resources": { "Test": { "Value": false, "Actual": "{?:Value;Yes}" } }
+    }' ''
+    Test-JercParser 'F012' 'If (false, variable)' '{
+        "resources": { "Test": { "Value": false, "Actual": "{?:Value;{Value}}" } }
+    }' ''
+    Test-JercParser 'F013' 'If (false, complex)' '{
+        "resources": { "Test": { "Value": false, "Actual": "<{?:Value;[{Value}]}>" } }
+    }' '<>'
+    Test-JercParser 'F014' 'IfElse (false, complex)' '{
+        "resources": { "Test": { "Value": 0, "Actual": "<{?:Value;[{Value}];No{;} never}> - {Value}" } }
+    }' '<No; never> - 0'
 
-# 'Equals' function
-Test-JercParser 'Equals (true)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "{EQ:Value;1234}" } }
-}' 'true'
-Test-JercParser 'Equals (false)' '{
-    "resources": { "Test": { "Value": 4321, "Actual": "{EQ:Value;1234}" } }
-}' 'false'
-Test-JercParser 'Equals (sub true)' '{
-    "resources": { "Test": { "Value": 1234, "Actual": "{?:{EQ:Value;1234};Yes;No}" } }
-}' 'Yes'
-Test-JercParser 'Equals (sub false)' '{
-    "resources": { "Test": { "Value": 4321, "Actual": "{?:{EQ:Value;1234};Yes;No}" } }
-}' 'No'
+    # 'IfNull' function
+    Test-JercParser 'F100' 'IfNull (true)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "{??:Value;Yes}" } }
+    }' '1234'
+    Test-JercParser 'F101' 'IfNull (false)' '{
+        "resources": { "Test": { "Value": false, "Actual": "{??:Value;Yes}" } }
+    }' 'Yes'
+    Test-JercParser 'F102' 'IfNull (null)' '{
+        "resources": { "Test": { "Value": null, "Actual": "{??:Value;Yes}" } }
+    }' 'Yes'
+    Test-JercParser 'F103' 'IfNull (0)' '{
+        "resources": { "Test": { "Value": 0, "Actual": "{??:Value;Yes}" } }
+    }' 'Yes'
+    Test-JercParser 'F104' 'IfNull ()' '{
+        "resources": { "Test": { "Value": "", "Actual": "{??:Value;Yes}" } }
+    }' 'Yes'
+    Test-JercParser 'F105' 'IfNull (JSON)' '{
+        "resources": { "Test": { "Value": "", "Actual": "A{??:Value;[1,2]}Z" } }
+    }' 'A[1,2]Z'
 
-# 'LowerCase' function
-Test-JercParser 'LowerCase' '{
-    "resources": { "Test": { "Value": "TEst", "Actual": "{LC:Value}" } }
-}' 'test'
+    # 'Equals' function
+    Test-JercParser 'F200' 'Equals (true)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "{EQ:Value;1234}" } }
+    }' 'true'
+    Test-JercParser 'F201' 'Equals (false)' '{
+        "resources": { "Test": { "Value": 4321, "Actual": "{EQ:Value;1234}" } }
+    }' 'false'
+    Test-JercParser 'F202' 'Equals (sub true)' '{
+        "resources": { "Test": { "Value": 1234, "Actual": "{?:{EQ:Value;1234};Yes;No}" } }
+    }' 'Yes'
+    Test-JercParser 'F203' 'Equals (sub false)' '{
+        "resources": { "Test": { "Value": 4321, "Actual": "{?:{EQ:Value;1234};Yes;No}" } }
+    }' 'No'
 
-# 'In' function
-Test-JercParser 'In (true 1)' '{
-    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;OK;A;B}" } }
-}' 'true'
-Test-JercParser 'In (true 2)' '{
-    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;OK;B}" } }
-}' 'true'
-Test-JercParser 'In (true 3)' '{
-    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;B;OK}" } }
-}' 'true'
-Test-JercParser 'In (false)' '{
-    "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;B;C}" } }
-}' 'false'
+    # 'LowerCase' function
+    Test-JercParser 'F300' 'LowerCase' '{
+        "resources": { "Test": { "Value": "TEst", "Actual": "{LC:Value}" } }
+    }' 'test'
 
-# 'UpperCase' function
-Test-JercParser 'UpperCase' '{
-    "resources": { "Test": { "Value": "TEst", "Actual": "{UC:Value}" } }
-}' 'TEST'
+    # 'In' function
+    Test-JercParser 'F400' 'In (true 1)' '{
+        "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;OK;A;B}" } }
+    }' 'true'
+    Test-JercParser 'F401' 'In (true 2)' '{
+        "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;OK;B}" } }
+    }' 'true'
+    Test-JercParser 'F402' 'In (true 3)' '{
+        "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;B;OK}" } }
+    }' 'true'
+    Test-JercParser 'F403' 'In (false)' '{
+        "resources": { "Test": { "Value": "OK", "Actual": "{IN:Value;A;B;C}" } }
+    }' 'false'
 
-# Bad function
-Test-JercParser 'Unknown function warning' '{
-    "resources": { "Test": { "Actual": ">{X:Test}<", "ExpectedWarning": "Reference to unknown aspect One." } }
-}' '' -enabled 0
-Test-JercParser 'Function must not parse keyName as template' '{
-    "resources": { "Test": { "LC:Value": "TEST", "Actual": "{:LC:Value[1,2]}" } }
-}' 'ES'
-Test-JercParser 'Too many arguments; ignored' '{
-    "resources": { "Test": { "Value": "TEST", "Actual": "{LC:Value;A;B;C}" } }
-}' 'test'
+    # 'UpperCase' function
+    Test-JercParser 'F500' 'UpperCase' '{
+        "resources": { "Test": { "Value": "TEst", "Actual": "{UC:Value}" } }
+    }' 'TEST'
+
+    # Bad function
+    Test-JercParser 'F600' 'Unknown function warning' '{
+        "resources": { "Test": { "Actual": ">{X:Test}<", "ExpectedWarning": "Reference to unknown aspect One." } }
+    }' '' -enabled 0
+    Test-JercParser 'F601' 'Function must not parse keyName as template' '{
+        "resources": { "Test": { "LC:Value": "TEST", "Actual": "{:LC:Value[1,2]}" } }
+    }' 'ES'
+    Test-JercParser 'F602' 'Too many arguments; ignored' '{
+        "resources": { "Test": { "Value": "TEST", "Actual": "{LC:Value;A;B;C}" } }
+    }' 'test'
+
+})

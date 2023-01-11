@@ -3,14 +3,57 @@
 #
 
 $global:PwshTest = @{
+    'TestIdFilter' = $null;
     'ThrowExceptions' = $false;
     'TotalTestsRun'    = 0;
     'TestFailureCount' = 0;
+    'CurrentSuite'     = $null;
+    
+    'RunSuite'            = {
+        param ([string]$Title, $Tests)
+        $PwshTest.CurrentSuite = $Title
+        (&$Tests)
+        $PwshTest.CurrentSuite = $null
+    };
     'Run'              = {
-        param ([string]$Title, $Expected, $TestLogic, [string]$FailMessage = $null)
+        param ([string]$Id, [string]$Title, $Expected, $TestLogic, [string]$FailMessage = $null)
+
+        function printResult($result, $resultColour, [bool]$clear = $false) {
+            Write-Host "[" -NoNewline
+            Write-Host $result -NoNewline -ForegroundColor:$resultColour
+            Write-Host "] " -NoNewline
+            (showTitle $clear)
+            if ($clear) {
+                Write-Host "$([string]::new(8, 7))" -NoNewline
+            }
+        }
+        function showTitle([bool]$clear = $false) {
+            $len = 0
+            if ($PwshTest.CurrentSuite) {
+                $len += $PwshTest.CurrentSuite.Length
+                Write-Host $PwshTest.CurrentSuite -NoNewline -ForegroundColor White
+                if ($Id) {
+                    $len += $Id.Length + 1
+                    Write-Host " $Id" -NoNewline
+                }
+                $len += 2
+                Write-Host ': ' -NoNewline
+            }
+            $len += $Title.Length
+            Write-Host $Title -NoNewline
+            if ($clear) {
+                Write-Host "$([string]::new(8, $len))" -NoNewline
+            }
+        }
+
+        if ($Id -and $PwshTest.TestIdFilter -and -not ($Id -imatch $PwshTest.TestIdFilter)) {
+            (printResult 'SKIP' DarkGray)
+            Write-Host
+            return
+        }
+
         $PwshTest.TotalTestsRun += 1
-        Write-Host "[    ] $Title" -NoNewline
-        Write-Host "$([string]::new(8, $Title.Length + 8))" -NoNewline
+        (printResult '    ' Black $true)
 
         try {
             $actual = (&$TestLogic)
@@ -23,15 +66,13 @@ $global:PwshTest = @{
             $FailMessage = $Error[0]
         }
 
-        Write-Host "[" -NoNewline
         if ($FailMessage -or $actual -ne $Expected) {
-            Write-Host "FAIL" -NoNewline -ForegroundColor Red
+            (printResult 'FAIL' Red)
             $PwshTest.TestFailureCount += 1
         }
         else {
-            Write-Host "PASS" -NoNewline -ForegroundColor Green
+            (printResult 'PASS' Green)
         }
-        Write-Host "] $Title" -NoNewline
         if ($FailMessage) {
             Write-Host ": " -NoNewline
             Write-Host $FailMessage -ForegroundColor Red

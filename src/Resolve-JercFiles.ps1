@@ -84,6 +84,9 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
             if ($val -is [Hashtable]) {
                 (_applyStructure $base[$_] $val)
             }
+            elseif ($null -eq $base[$_]) {
+                $base[$_] = $val
+            }
             elseif ($allowOverride -and $null -ne $val) {
                 $base[$_] = $val
             }

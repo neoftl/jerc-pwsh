@@ -1,9 +1,10 @@
 param (
+    [string]$Filter = $null,
     [switch]$ContinueOnFail,
     [switch]$Debug
 )
 
-. $PSScriptRoot/_JercTestFramework.ps1 -ContinueOnFail:$ContinueOnFail -Debug:$Debug
+. $PSScriptRoot/_JercTestFramework.ps1 -TestIdFilter:$Filter -ContinueOnFail:$ContinueOnFail -Debug:$Debug
 
 Remove-Module Jerc -ErrorAction SilentlyContinue
 Import-Module $PSScriptRoot/../src/Jerc.psm1
@@ -14,5 +15,6 @@ Import-Module $PSScriptRoot/../src/Jerc.psm1
 . $PSScriptRoot/JercTests.Substrings.ps1
 . $PSScriptRoot/JercTests.Transform.ps1
 . $PSScriptRoot/JercTests.Includes.ps1
+. $PSScriptRoot/JercTests.Correctness.ps1
 
 (&$PwshTest.ShowSummary)
