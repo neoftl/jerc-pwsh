@@ -52,6 +52,9 @@ $script:_functions = @{
 
     # Self-resolve: value
     '~' = { param ([string]$value)
-        return "{$value}"
+        while ($rem[0] -and $rem[0] -ne '}') {
+            $value += (readArg)
+        }
+        return "{:$value}"
     };
 }

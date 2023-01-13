@@ -126,4 +126,14 @@
         "resources": { "Test": { "Value": "TEST", "Actual": "{LC:Value;A;B;C}" } }
     }' 'test'
 
+    # Reference function
+    Test-JercParser 'F700' 'Can reference another key' '{
+        "resources": { "Test": { "Ref": "OK", "Value": "Ref", "Actual": "{~:Value}" } }
+    }' 'OK'
+    Test-JercParser 'F701' 'Can reference another key with JERC-like syntax' '{
+        "resources": { "Test": { "Ref:A": "OK", "Value": "Ref:A", "Actual": "{~:Value}" } }
+    }' 'OK'
+    Test-JercParser 'F702' 'Can reference another key with suffix' '{
+        "resources": { "Test": { "Ref_A": "OK", "Value": "Ref", "Actual": "{~:Value;_A}" } }
+    }' 'OK'
 })

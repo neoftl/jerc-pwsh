@@ -2,7 +2,7 @@
 # Substring tests
 #
 
-(&$PwshTest.RunSuite 'Functions' {
+(&$PwshTest.RunSuite 'Substrings' {
 
     Test-JercParser 'S001' 'Substrings' '{
         "resources": { "Test": { "Value": "ABCDEFG", "Actual": "{Value[,3]}/{Value[2,3]}/{Value[4]}" } }
