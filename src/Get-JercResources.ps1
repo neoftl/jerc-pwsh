@@ -19,6 +19,7 @@ function Get-JercResources ([IO.FileInfo]$File) {
     $resources = (Resolve-JercResources $File)
     $resources.Keys | ForEach-Object {
         $resource = $resources[$_]
+        $resource['.key'] = $_
         @($resource.Keys) | Where-Object { $_ -and $resource[$_] -and $resource[$_] -is [string] } | ForEach-Object {
             $value = (Convert-JercTemplate $resource[$_] $resource '')
 
