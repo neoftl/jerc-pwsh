@@ -17,11 +17,12 @@ $script:_functions = @{
         if ($conditionValue -in '0', 'false') { $conditionValue = $null }
         return $conditionValue ? $trueValue : $falseValue
     };
-    # IfNull: value; nullValue
+    # IfNull: value; nullValue*
     '??' = { param ([string]$value)
-        $nullValue = (readArg)
-        if ($value -in '0', 'false') { $value = $null }
-        return $value ? $value : $nullValue
+        while ($rem -and $rem[0] -ne '}' -and (-not $value -or $value -in '0', 'false')) {
+            $value = (readArg)
+        }
+        return $value
     };
     # Equals: value1; value2
     'EQ' = { param ([string]$value1)

@@ -122,9 +122,9 @@ Resource
 `"{?:Key2;Yes;No}"` -> `"No"`
 
 ### IfNull: `??`
-`{??:` `key-name` `;` `null-value` `}`
+`{??:` `key-name` ( `;` `null-value` )* `}`
 
-Returns the value of `key-name` if it's not `false`, otherwise returns `null-value`.
+Returns the value of `key-name` if it's not `false`, otherwise returns first non-`false` `null-value`.
 
 **Examples:**  
 Given:
@@ -135,6 +135,7 @@ Resource
 
 `"{??:Key1;unknown}"` -> `"value1"`  
 `"{??:Key2;unknown}"` -> `"unknown"`
+`"{??:Key2;{Key3};unknown}"` -> `"unknown"`
 
 ### Equals: `EQ`
 `{EQ:` `key-name` `;` `value` `}`

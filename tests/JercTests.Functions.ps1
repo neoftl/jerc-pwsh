@@ -67,6 +67,15 @@
     Test-JercParser 'F105' 'IfNull (JSON)' '{
         "resources": { "Test": { "Value": "", "Actual": "A{??:Value;[1,2]}Z" } }
     }' 'A[1,2]Z'
+    Test-JercParser 'F106' 'IfNull (multi 1)' '{
+        "resources": { "Test": { "Value": 1, "Actual": "{??:Value;0;0}" } }
+    }' '1'
+    Test-JercParser 'F106' 'IfNull (multi 2)' '{
+        "resources": { "Test": { "Value": 0, "Actual": "{??:Value;2;0}" } }
+    }' '2'
+    Test-JercParser 'F106' 'IfNull (multi 3)' '{
+        "resources": { "Test": { "Value": 0, "Actual": "{??:Value;0;3}" } }
+    }' '3'
 
     # 'Equals' function
     Test-JercParser 'F200' 'Equals (true)' '{
