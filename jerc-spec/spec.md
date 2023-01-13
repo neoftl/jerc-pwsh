@@ -6,6 +6,10 @@ An open-source specification of an extensible format for creating resource confi
 ## 0. Meta information
 
 ### 0.1. Version History
+**v0.3-beta (January 2023)**
+* IfNull function takes multiple arguments
+* API accepts a file list, to apply in order order
+
 **v0.2-beta (January 2023)**
 * Improved templating syntax
 
@@ -35,12 +39,12 @@ JERC was created to solve situations such as being able to define a single confi
 **Example:**
 ```mermaid
 graph LR
-    subgraph Files
+    subgraph JERC files
     A1[/Globals/] .->|.include| B[/Specifics/]
     A2[/Constants/] .->|.include| B
     end
     subgraph Scripts
-    B -->|Resolve| C{{Memory}}
+    B -->|JERC resolve| C{{Memory}}
     style C stroke-dasharray: 5 5
     C --> S1[Script1]
     C --> S2[Script2]
@@ -119,12 +123,16 @@ To force a `null` in to the hierarchy for a key, the `"{!}null"` [template](temp
 ## 2. Implementations
 ### 2.1. Implementation API
 The minimum API of an implementation of the specification should provide:
-* A method that takes a single file path and returns a dictionary of all resources with the resultant configured key-values.
+* A method that takes a single file path and returns a dictionary of all resources with the resultant configured key-values:  
+  `[resource dictionary] ParseJercFiles( [string array] jerc-file-names )`
 
 Additional methods that make it easier for a consumer to locate issues in their files could include a way to output the state at each of the steps when processing a configuration file:
-* The list of all files that will be processed.
-* The resolved aspects and resources from all included files.
-* The resolved list of resources after applying aspects (before transformations).
+* The list of all files that will be processed:  
+  `[string array] GetJercFileList( [string array] jerc-file-names )`
+* The resolved aspects and resources from all included files:  
+  `[file dictionary] ResolveJercFiles( [string array] jerc-file-names )`
+* The resolved list of resources after applying aspects (before transformations):  
+  `[resource dictionary] GetUntransformedJercResources( [string array] jerc-file-names )`
 
 ## 3. Templating
 Dynamic values are resolved using the [templating language](templates.md).

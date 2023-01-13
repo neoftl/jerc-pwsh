@@ -10,8 +10,8 @@ Jerc templates will not be transformed.
 This command is intended for use in diagnosing unexpected configuration values.
 For actual use of Jerc resources, see the Get-JercResources command.
 
-.PARAMETER File
-The Jerc file (JSON) to be processed.
+.PARAMETER Files
+The Jerc files (JSON) to be processed.
 
 .EXAMPLE
 Resolve-JercResources './resources.jsonc'
@@ -22,8 +22,8 @@ Get-JercResources
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Resolve-JercResources ([IO.FileInfo]$File) {
-    $config = (Resolve-JercFiles $File)
+function Resolve-JercResources ([string[]]$Files) {
+    $config = (Resolve-JercFiles $Files)
 
     @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
         $config.resources.Remove($_)

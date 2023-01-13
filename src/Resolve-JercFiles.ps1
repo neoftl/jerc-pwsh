@@ -10,8 +10,8 @@ Jerc templates will not be transformed.
 This command is intended for use in diagnosing unexpected configuration values.
 For actual use of Jerc resources, see the Get-JercResources command.
 
-.PARAMETER File
-The Jerc file (JSON) to be processed.
+.PARAMETER Files
+The Jerc files (JSON) to be processed.
 
 .EXAMPLE
 Resolve-JercFiles './resources.jsonc'
@@ -22,13 +22,19 @@ Get-JercResources
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Resolve-JercFiles ([IO.FileInfo]$File) {
-    Write-Debug "Resolving $($File.FullName)"
-
+function Resolve-JercFiles ([string[]]$Files) {
+    $File = [IO.FileInfo]([IO.Path]::Combine($PWD, $Files[0]))
     if (-not $File.Exists) {
-        Write-Error "Could not find configuration file '$($File.FullName)'."
+        Write-Error "Could not find configuration file '$($Files[0])'."
         return $null
     }
+
+    $includes = @()
+    if ($Files.Count -gt 1) {
+        $includes = $Files[1..($Files.Count - 1)]
+    }
+
+    Write-Debug "Resolving $($File.FullName)"
 
     $json = (Get-Content $File.FullName -Raw)
     $config = (ConvertFrom-Json $json -AsHashtable)
@@ -41,6 +47,14 @@ function Resolve-JercFiles ([IO.FileInfo]$File) {
     }
     if (-not $config.ContainsKey('resources')) {
         $config.Add('resources', [Hashtable]::new()) | Out-Null
+    }
+
+    # Include additional files
+    if ($includes) {
+        if (-not ($config.'.include' -is [array])) {
+            $config.'.include' = @()
+        }
+        $config.'.include' += $includes
     }
 
     # Resolve includes

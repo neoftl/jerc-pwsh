@@ -1,5 +1,5 @@
 # JERC for Powershell Core
-Powershell Core implementation of Json Extensible Resource Configuration format, including spec.
+Powershell Core implementation of Json Extensible Resource Configuration v0.3-beta format.
 
 ## Specification
 The JERC specification is [available here](jerc-spec/spec.md).
@@ -8,13 +8,13 @@ The JERC specification is [available here](jerc-spec/spec.md).
 **`[string] Convert-JercTemplate [string]$template, [Hashtable]$resource, [string]$templateStart = '$'`**  
 Returns a text with all Jerc templates resolved for the given resource.
 
-**`[Hashtable] Get-JercResources [string]$jercFile`**  
+**`[Hashtable] Get-JercResources [string[]]$jercFiles`**  
 Returns resources with fully resolved values.
 
-**`[Hashtable] Resolve-JercFiles [string]$jercFile`**  
+**`[Hashtable] Resolve-JercFiles [string[]]$jercFiles`**  
 Returns Jerc file structure with all files included.
 
-**`[Hashtable] Resolve-JercResources [string]$jercFile`**  
+**`[Hashtable] Resolve-JercResources [string[]]$jercFiles`**  
 Returns Jerc file structure with aspects resolved.
 
 ## Usage
@@ -81,9 +81,10 @@ Write-Output $result
 ### Functions
 In addition to the [standard functions](jerc-spec/templates.md#functions), `jerc-pwsh` provides the following functions:
 
-* `~`: `key-name`
-  * Resolve the value of `key-name` as though it is a reference
-  * Example: `"{~:key}"` resolve `key` to `value` and then resolves `value` as though the template was `"{value}"`
+* `~`: `key-name` ( `;` `concat-arg` )*
+  * Resolve the result of the `key-name` value concatented with any `concat-arg`s, as though it was a direct template
+  * Example: `"{~:key}"` resolves `key` to `value` and then resolves `value` as though the template was `"{value}"`
+  * Example: `"{~:key;2}"` resolves `key` to `value` and then resolves `value2` as though the template was `"{value2}"`
   * Note: If the second resolution contains escaped templates, these will be further parsed.
     * e.g., If `value` was given as `"{{key2}"`, the result will be the value of `key2`.
     * TODO: confirm

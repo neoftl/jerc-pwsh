@@ -6,8 +6,8 @@ Returns resources with fully resolved values.
 Resolves Jerc file(s) to final resource values.
 Returns a dictionary of resource names, with each a dictionary of key-values.
 
-.PARAMETER File
-The Jerc file (JSON) to be processed.
+.PARAMETER Files
+The Jerc files (JSON) to be processed.
 
 .EXAMPLE
 Get-JercResources './resources.jsonc'
@@ -15,8 +15,8 @@ Get-JercResources './resources.jsonc'
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Get-JercResources ([IO.FileInfo]$File) {
-    $resources = (Resolve-JercResources $File)
+function Get-JercResources ([string[]]$Files) {
+    $resources = (Resolve-JercResources $Files)
     $resources.Keys | ForEach-Object {
         $resource = $resources[$_]
         $resource['.key'] = $_
