@@ -34,6 +34,7 @@ e.g., `"1"` and `1` are equivalent
 * [Substrings](#substrings) are placed at the end of `key-name` using format `key-name` `[` `start` [ `,` `length` ] `]`.
 * If a string value needs to be converted to its most basic (i.e., number, boolean), a preceeding `{!}` template will mark the value as a literal.
   * Note that marking something that cannot be a literal as such must generate a warning.
+* The shortcut `{null}` will resolve to `null` if it is the only part of the value.
 
 ### EBNF
 ```ebnf

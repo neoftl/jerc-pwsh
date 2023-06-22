@@ -136,6 +136,12 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
             return '{!}'
         }
         
+        # "{null}" - Literal null
+        if ($rem.Length -gt 5 -and (_substring $rem 0 6) -eq '{null}') {
+            $rem.Remove(0, 6) | Out-Null
+            return '{null:}'
+        }
+        
         # Check for function
         $fn = $null
         $idx = (_indexOfAny $rem @(':', '}'))

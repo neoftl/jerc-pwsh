@@ -1,11 +1,14 @@
 # Json Extensible Resource Configuration
->This document covers the specification detail for JERC `v0.2-beta (Jan 2023)`.
+>This document covers the specification detail for JERC `v0.4-beta (June 2023)`.
 
 An open-source specification of an extensible format for creating resource configurations for any purpose.
 
 ## 0. Meta information
 
 ### 0.1. Version History
+**v0.4-beta (June 2023)**
+* Introduced `{null}` literal
+
 **v0.3-beta (January 2023)**
 * IfNull function takes multiple arguments
 * API accepts a file list, to apply in order order
@@ -118,7 +121,7 @@ When combining sets (e.g., aspect/resource collision on include, aspect applying
 1. the key has not been defined on the target, or
 2. the key has a value of `null` on the target.
 
-To force a `null` in to the hierarchy for a key, the `"{!}null"` [template](templates.md) will be treated like any non-`null` value until it is resolved at [step 5](#processing-steps).
+To force a `null` in to the hierarchy for a key, the `"{!}null"` or `"{null}"` [templates](templates.md) will be treated like any non-`null` value until it is resolved at [step 5](#processing-steps).
 
 ## 2. Implementations
 ### 2.1. Implementation API

@@ -6,7 +6,7 @@
 # https://github.com/neoftl/jerc-pwsh/blob/main/standard/spec.md
 #
 
-if (-not $PSVersionTable -or $PSVersionTable.PSVersion -lt 7) {
+if (-not $PSVersionTable -or $PSVersionTable.PSVersion -lt '7.0') {
     Write-Error "JSON Configuration Parser v2 requires Powershell Core 7. You currently have Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion). Please upgrade."
     return
 }

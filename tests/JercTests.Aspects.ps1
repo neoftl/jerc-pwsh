@@ -66,4 +66,8 @@
         "aspects": { "One": { "Value": "{{OK}" } },
         "resources": { "Test": { ".aspects": [ "One" ], "OK": "FAIL", "Actual": "{Value}" } }
     }' '{OK}' -enabled 0
+    Test-JercParser 'A017' 'Resource can inherit literal null aspect value' '{
+        "aspects": { "One": { "Actual": "{null}" }, "Two": { "Actual": "Two" } },
+        "resources": { "Test": { ".aspects": [ "One", "Two" ] } }
+    }' $null
 })

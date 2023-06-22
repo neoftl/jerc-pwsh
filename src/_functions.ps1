@@ -43,6 +43,10 @@ $script:_functions = @{
         }
         return $false
     };
+    # NULL
+    'NULL' = { param ([string]$value)
+        return $null
+    };
     # UpperCase: value
     'UC' = { param ([string]$value)
         return "$value".ToUpper()

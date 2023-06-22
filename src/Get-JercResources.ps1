@@ -24,7 +24,9 @@ function Get-JercResources ([string[]]$Files) {
             $value = (Convert-JercTemplate $resource[$_] $resource '')
 
             # Convert to literal
-            if ($value.StartsWith('{!}')) {
+            if ($value -eq '{null:}') {
+                $value = $null
+            } elseif ($value.StartsWith('{!}')) {
                 # TODO: graceful handling of invalid literals?
                 Write-Debug "Parsing '$($value.Substring(3))' as literal."
                 $value = (ConvertFrom-Json $value.Substring(3))
