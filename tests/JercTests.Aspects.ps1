@@ -20,7 +20,7 @@
     }' '' -enabled 0
     Test-JercParser 'A005' 'Resource can take overlapping aspects' '{
         "aspects": { "One": { "Actual": "One" }, "Two": { "Actual": "Two" } },
-        "resources": { "Test": { ".aspects": [ "One", "Two" ], "Actual": null } }
+        "resources": { "Test": { ".aspects": [ "One", "Two" ] } }
     }' 'One'
     Test-JercParser 'A006' 'Resource can inherit null aspect value' '{
         "aspects": { "One": { "Actual": "{!}null" }, "Two": { "Actual": "Two" } },
@@ -70,4 +70,12 @@
         "aspects": { "One": { "Actual": "{null}" }, "Two": { "Actual": "Two" } },
         "resources": { "Test": { ".aspects": [ "One", "Two" ] } }
     }' $null
+    Test-JercParser 'A018' 'Global aspect value can be overridden' '{
+        "aspects": { "*": { "Actual": "One" }, "Two": { "Actual": "Two" } },
+        "resources": { "Test": { ".aspects": [ "Two" ] } }
+    }' 'Two'
+    Test-JercParser 'A019' 'Global aspect object can be overridden' '{
+        "aspects": { "*": { "Actual": { "Value": "One" } }, "Two": { "Actual": { "Value": "Two" } } },
+        "resources": { "Test": { ".aspects": [ "Two" ] } }
+    }' '{"Value":"Two"}'
 })

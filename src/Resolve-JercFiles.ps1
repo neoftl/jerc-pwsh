@@ -93,19 +93,22 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
             return
         }
 
-        Write-Debug "Applying key '$_'."
         if ($base.ContainsKey($_)) {
             if ($val -is [Hashtable]) {
-                (_applyStructure $base[$_] $val)
+                Write-Debug "Applying hashtable '$_'."
+                (_applyStructure $base[$_] $val $allowOverride)
             }
             elseif ($null -eq $base[$_]) {
+                Write-Debug "Setting NULL key '$_' to '$val'."
                 $base[$_] = $val
             }
             elseif ($allowOverride -and $null -ne $val) {
+                Write-Debug "Overriding key '$_' to '$val'."
                 $base[$_] = $val
             }
         }
         else {
+            Write-Debug "Adding key '$_' ($($val.GetType()))."
             $base.Add($_, $val) | Out-Null
         }
     }
