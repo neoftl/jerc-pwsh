@@ -108,7 +108,7 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
             }
         }
         else {
-            Write-Debug "Adding key '$_' ($($val.GetType()))."
+            Write-Debug "Adding key '$_' ($($val ? $val.GetType() : 'NULL'))."
             $base.Add($_, $val) | Out-Null
         }
     }
