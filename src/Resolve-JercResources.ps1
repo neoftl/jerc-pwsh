@@ -29,6 +29,7 @@ function Resolve-JercResources ([string[]]$Files) {
         $config.resources.Remove($_)
     }
     $config.resources.Keys | ForEach-Object {
+        Write-Debug "Resolving '$_'."
         $key = $_
         $resource = $config.resources[$_]
         if (-not $resource.ContainsKey('.aspects')) {
@@ -39,17 +40,20 @@ function Resolve-JercResources ([string[]]$Files) {
         }
         $aspectValues = (_applyAspects @($resource.'.aspects') $config.aspects)
         $resource.Remove('.aspects')
+        Write-Debug "Applying $($aspectValues.Keys.Count) aspect keys to $($resource.Keys.Count) resource keys."
         $aspectValues.Keys | Where-Object { $_ -ne '.aspects' } | Sort-Object -Unique | ForEach-Object {
-            if (-not $resource.ContainsKey($_)) {
-                if ($null -eq $aspectValues[$_]) {
-                    Write-Warning "Resource '$key' was expected to override aspect value '$_'."
-                    return
-                }
+            if (-not $resource.ContainsKey($_) `
+                    -and $null -eq $aspectValues[$_]) {
+                Write-Warning "Resource '$key' was expected to override aspect value '$_'."
             }
-            elseif ($null -ne $resource[$_]) {
-                return # Keep resource value
+            elseif ($resource[$_] -is [hashtable]) {
+                Write-Debug "Merging aspect value '$_'."
+                (_applyStructure $resource[$_] $aspectValues[$_] $true)
             }
-            $resource[$_] = $aspectValues[$_]
+            elseif ($null -eq $resource[$_]) {
+                Write-Debug "Applying aspect value '$_'."
+                $resource[$_] = $aspectValues[$_]
+            }
         }
     }
 
@@ -78,13 +82,13 @@ function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtabl
             return
         }
 
-        Write-Debug "  Keys before: $($result.Keys.Count)"
+        Write-Debug "  Keys before '$_': $($result.Keys.Count)"
         if ($aspects[$_].ContainsKey('.aspects')) {
             $result = (_applyAspects $aspects[$_]['.aspects'] $aspects $result)
         }
 
         (_applyStructure $result $aspects[$_] $true)
-        Write-Debug "  Keys after: $($result.Keys.Count)"
+        Write-Debug "  Keys after '$_': $($result.Keys.Count)"
     }
 
     return $result

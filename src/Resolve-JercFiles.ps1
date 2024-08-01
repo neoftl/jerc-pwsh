@@ -94,7 +94,7 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
         }
 
         if ($base.ContainsKey($_)) {
-            if ($val -is [Hashtable]) {
+            if ($base[$_] -is [hashtable] -and $val -is [Hashtable]) {
                 Write-Debug "Applying hashtable '$_'."
                 (_applyStructure $base[$_] $val $allowOverride)
             }
