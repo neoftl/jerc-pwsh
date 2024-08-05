@@ -62,11 +62,7 @@ function Resolve-JercResources ([string[]]$Files) {
 Export-ModuleMember -Function Resolve-JercResources
 
 # Applies a set of aspects to an existing or new dictionary
-function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtable]$result = $null) {
-    if ($null -eq $result) {
-        $result = [Hashtable]::new()
-    }
-
+function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtable]$result = @{}) {
     if ($aspects.ContainsKey('*')) {
         $aspectsToApply = (@('*') + $aspectsToApply)
     }

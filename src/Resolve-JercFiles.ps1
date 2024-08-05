@@ -96,6 +96,7 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
         if ($base.ContainsKey($_)) {
             if ($base[$_] -is [hashtable] -and $val -is [Hashtable]) {
                 Write-Debug "Applying hashtable '$_'."
+                $base[$_] = $base[$_].Clone()
                 (_applyStructure $base[$_] $val $allowOverride)
             }
             elseif ($null -eq $base[$_]) {
