@@ -9,10 +9,10 @@ param (
 $PwshTest.TestIdFilter = $TestIdFilter
 $PwshTest.ThrowExceptions = -not $ContinueOnFail
 
-$ErrorActionPreference = $ContinueOnFail ? 'Continue' : 'Stop'
-$DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
-
 function Test-JercResources ([string]$Id, [string]$Title, [string]$json1, $ResultLogic, [string]$json2 = $null, [bool]$enabled = $true) {
+    $global:ErrorActionPreference = $ContinueOnFail ? 'Continue' : 'Stop'
+    $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
+    
     if (-not $enabled -or (-not $ContinueOnFail -and $PwshTest.TestFailureCount -gt 0)) { return }
     Set-Content "$PSScriptRoot/file1.json" $json1
     if ($json2) { Set-Content "$PSScriptRoot/file2.json" $json2 }
@@ -25,9 +25,15 @@ function Test-JercResources ([string]$Id, [string]$Title, [string]$json1, $Resul
         })
     Remove-Item "$PSScriptRoot/file1.json"
     Remove-Item "$PSScriptRoot/file2.json" -ErrorAction SilentlyContinue
+
+    $global:ErrorActionPreference = 'Stop'
+    $global:DebugPreference = 'SilentlyContinue'
 }
 
 function Test-JercParser ([string]$Id, [string]$Title, [string]$json1, $Expected, [string]$json2 = $null, [bool]$enabled = $true) {
+    $global:ErrorActionPreference = $ContinueOnFail ? 'Continue' : 'Stop'
+    $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
+    
     if (-not $enabled -or (-not $ContinueOnFail -and $PwshTest.TestFailureCount -gt 0)) { return }
     Set-Content "$PSScriptRoot/file1.json" $json1
     if ($json2) { Set-Content "$PSScriptRoot/file2.json" $json2 }
@@ -44,9 +50,15 @@ function Test-JercParser ([string]$Id, [string]$Title, [string]$json1, $Expected
         })
     Remove-Item "$PSScriptRoot/file1.json"
     Remove-Item "$PSScriptRoot/file2.json" -ErrorAction SilentlyContinue
+
+    $global:ErrorActionPreference = 'Stop'
+    $global:DebugPreference = 'SilentlyContinue'
 }
 
 function Test-JercTransformer ([string]$Id, [string]$Title, [Hashtable]$resource, [string]$template, $Expected, [bool]$enabled = $true) {
+    $global:ErrorActionPreference = $ContinueOnFail ? 'Continue' : 'Stop'
+    $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
+    
     if (-not $enabled -or (-not $ContinueOnFail -and $PwshTest.TestFailureCount -gt 0)) { return }
     (&$PwshTest.Run -Id $Id -Title $Title -Expected $Expected `
         -TestLogic {
@@ -55,4 +67,7 @@ function Test-JercTransformer ([string]$Id, [string]$Title, [Hashtable]$resource
             $global:_lastTestResult = $result
             return $result
         })
+
+    $global:ErrorActionPreference = 'Stop'
+    $global:DebugPreference = 'SilentlyContinue'
 }

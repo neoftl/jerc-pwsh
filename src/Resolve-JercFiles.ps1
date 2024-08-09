@@ -34,7 +34,7 @@ function Resolve-JercFiles ([string[]]$Files) {
         $includes = $Files[1..($Files.Count - 1)]
     }
 
-    Write-Debug "Resolving $($File.FullName)"
+    Write-Debug "Including file $($File.FullName)"
 
     $json = (Get-Content $File.FullName -Raw)
     $config = (ConvertFrom-Json $json -AsHashtable)
@@ -68,10 +68,10 @@ function Resolve-JercFiles ([string[]]$Files) {
             }
             if ($inc) {
                 if ($inc.ContainsKey('aspects')) {
-                    (_applyStructure $config.aspects $inc.aspects)
+                    $config.aspects = (_applyStructure $config.aspects $inc.aspects)
                 }
                 if ($inc.ContainsKey('resources')) {
-                    (_applyStructure $config.resources $inc.resources)
+                    $config.resources = (_applyStructure $config.resources $inc.resources)
                 }
             }
         }
@@ -84,6 +84,7 @@ Export-ModuleMember -Function Resolve-JercFiles
 
 # Applies keys from 'new' dictionary on to 'base'
 function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride = $false) {
+    $base = $base.Clone()
     $new.Keys | Where-Object { $_ -and $_ -ne '.include' } | ForEach-Object {
         $val = $new[$_]
         if ($_ -eq '.aspects' -and $base[$_] -is [Array]) {
@@ -95,22 +96,22 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
 
         if ($base.ContainsKey($_)) {
             if ($base[$_] -is [hashtable] -and $val -is [Hashtable]) {
-                Write-Debug "Applying hashtable '$_'."
-                $base[$_] = $base[$_].Clone()
-                (_applyStructure $base[$_] $val $allowOverride)
+                Write-Debug "  Applying hashtable '$_'."
+                $base[$_] = (_applyStructure $base[$_] $val $allowOverride $true)
             }
             elseif ($null -eq $base[$_]) {
-                Write-Debug "Setting NULL key '$_' to '$val'."
+                Write-Debug "  Setting NULL key '$_' to '$val'."
                 $base[$_] = $val
             }
             elseif ($allowOverride -and $null -ne $val) {
-                Write-Debug "Overriding key '$_' to '$val'."
+                Write-Debug "  Overriding key '$_' to '$val'."
                 $base[$_] = $val
             }
         }
         else {
-            Write-Debug "Adding key '$_' ($($val ? $val.GetType() : 'NULL'))."
+            Write-Debug "  Adding key '$_' ($($val ? $val.GetType() : 'NULL'))."
             $base.Add($_, $val) | Out-Null
         }
     }
+    return $base
 }

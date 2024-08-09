@@ -29,7 +29,7 @@ function Resolve-JercResources ([string[]]$Files) {
         $config.resources.Remove($_)
     }
     $config.resources.Keys | ForEach-Object {
-        Write-Debug "Resolving '$_'."
+        Write-Debug "Resolving resource '$_'."
         $key = $_
         $resource = $config.resources[$_]
         if (-not $resource.ContainsKey('.aspects')) {
@@ -41,6 +41,7 @@ function Resolve-JercResources ([string[]]$Files) {
         $aspectValues = (_applyAspects @($resource.'.aspects') $config.aspects)
         $resource.Remove('.aspects')
         Write-Debug "Applying $($aspectValues.Keys.Count) aspect keys to $($resource.Keys.Count) resource keys."
+        #Write-Debug (ConvertTo-Json $aspectValues)
         $aspectValues.Keys | Where-Object { $_ -ne '.aspects' } | Sort-Object -Unique | ForEach-Object {
             if (-not $resource.ContainsKey($_) `
                     -and $null -eq $aspectValues[$_]) {
@@ -48,7 +49,7 @@ function Resolve-JercResources ([string[]]$Files) {
             }
             elseif ($resource[$_] -is [hashtable]) {
                 Write-Debug "Merging aspect value '$_'."
-                (_applyStructure $resource[$_] $aspectValues[$_] $true)
+                $resource[$_] = (_applyStructure $resource[$_] $aspectValues[$_] $true)
             }
             elseif ($null -eq $resource[$_]) {
                 Write-Debug "Applying aspect value '$_'."
@@ -83,8 +84,9 @@ function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtabl
             $result = (_applyAspects $aspects[$_]['.aspects'] $aspects $result)
         }
 
-        (_applyStructure $result $aspects[$_] $true)
+        $result = (_applyStructure $result $aspects[$_] $true)
         Write-Debug "  Keys after '$_': $($result.Keys.Count)"
+        #Write-Debug (ConvertTo-Json $result)
     }
 
     return $result

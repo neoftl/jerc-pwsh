@@ -71,11 +71,15 @@
         "resources": { "Test": { ".aspects": [ "One", "Two" ] } }
     }' $null
     Test-JercParser 'A018' 'Global aspect value can be overridden' '{
-        "aspects": { "*": { "Actual": "One" }, "Two": { "Actual": "Two" } },
-        "resources": { "Test": { ".aspects": [ "Two" ] } }
+        "aspects": { "*": { "Actual": "One" }, "Aspect1": { "Actual": "Two" } },
+        "resources": { "Test": { ".aspects": [ "Aspect1" ] } }
     }' 'Two'
-    Test-JercParser 'A019' 'Global aspect object can be overridden' '{
-        "aspects": { "*": { "Actual": { "Value": "One" } }, "Two": { "Actual": { "Value": "Two" } } },
-        "resources": { "Test": { ".aspects": [ "Two" ] } }
+    Test-JercParser 'A019' 'Global aspect deep value can be overridden' '{
+        "aspects": { "*": { "Actual": { "Value": "One" } }, "Aspect1": { "Actual": { "Value": "Two" } } },
+        "resources": { "Test": { ".aspects": [ "Aspect1" ] } }
     }' '{"Value":"Two"}'
+    Test-JercParser 'A020' 'Deep object merging not shared across resources' '{
+        "aspects": { "*": { "object": { "One": 1 } }, "Aspect1": { "object": { "Two": 2 } } },
+        "resources": { "AddKey": { ".aspects": [ "Aspect1" ] }, "Test": { "Actual": "{!}{object}" } }
+    }' '{"One":1}'
 })
