@@ -43,10 +43,10 @@ function Resolve-JercFiles ([string[]]$Files) {
         return
     }
     if (-not $config.ContainsKey('aspects')) {
-        $config.Add('aspects', [Hashtable]::new()) | Out-Null
+        $config.'aspects' = @{}
     }
     if (-not $config.ContainsKey('resources')) {
-        $config.Add('resources', [Hashtable]::new()) | Out-Null
+        $config.'resources' = @{}
     }
 
     # Include additional files

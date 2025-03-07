@@ -10,8 +10,8 @@ Jerc templates will not be transformed.
 This command is intended for use in diagnosing unexpected configuration values.
 For actual use of Jerc resources, see the Get-JercResources command.
 
-.PARAMETER FilesOrHashtable
-The array of Jerc files (JSON) to be processed, or a hashtable of prepared resources.
+.PARAMETER FilesOrHashtables
+The array of Jerc files (JSON) or hashtables to be processed.
 
 .EXAMPLE
 Resolve-JercResources './resources.jsonc'
@@ -22,13 +22,18 @@ Get-JercResources
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Resolve-JercResources ($FilesOrHashtable) {
-    if ($FilesOrHashtable -is [string[]]) {
-        $config = [hashtable](Resolve-JercFiles $FilesOrHashtable)
-    } elseif ($FilesOrHashtable -is [hashtable]) {
-        $config = [hashtable]$FilesOrHashtable
-    } else {
-        Write-Error "Unsupported parameter type '$($FilesOrHashtable.GetType())'."
+function Resolve-JercResources ($FilesOrHashtables) {
+    if ($FilesOrHashtables -is [string] -or ($FilesOrHashtables -is [array] -and $FilesOrHashtables[0] -is [string])) {
+        $config = [hashtable](Resolve-JercFiles $FilesOrHashtables)
+    }
+    elseif ($FilesOrHashtables -is [hashtable]) {
+        $config = [hashtable]$FilesOrHashtables
+    }
+    elseif ($FilesOrHashtables -is [array] -and $FilesOrHashtables[0] -is [hashtable]) {
+        $config = [hashtable]$FilesOrHashtables[0]
+    }
+    else {
+        Write-Error "Unsupported parameter type '$(($FilesOrHashtables)?.GetType())'."
         return
     }
     if (-not $config.ContainsKey('aspects')) {
@@ -36,6 +41,20 @@ function Resolve-JercResources ($FilesOrHashtable) {
     }
     if (-not $config.ContainsKey('resources')) {
         $config.'resources' = @{}
+    }
+    if ($FilesOrHashtables -is [array]) {
+        $FilesOrHashtables[1..$FilesOrHashtables.Length] | ForEach-Object {
+            if ($_ -isnot [hashtable]) {
+                Write-Error "Unsupported parameter type '$($_.GetType())'."
+                exit
+            }
+            if ($_.ContainsKey('aspects')) {
+                $config.aspects = (_applyStructure $config.aspects $_.aspects)
+            }
+            if ($_.ContainsKey('resources')) {
+                $config.resources = (_applyStructure $config.resources $_.resources)
+            }
+        }
     }
 
     @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
