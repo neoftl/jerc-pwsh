@@ -8,14 +8,20 @@ The JERC specification is [available here](jerc-spec/spec.md).
 **`[string] Convert-JercTemplate [string]$template, [Hashtable]$resource, [string]$templateStart = '$'`**  
 Returns a text with all Jerc templates resolved for the given resource.
 
-**`[Hashtable] Get-JercResources [string[]]$jercFiles`**  
-Returns resources with fully resolved values.
-
 **`[Hashtable] Resolve-JercFiles [string[]]$jercFiles`**  
 Returns Jerc file structure with all files included.
 
 **`[Hashtable] Resolve-JercResources [string[]]$jercFiles`**  
 Returns Jerc file structure with aspects resolved.
+
+**`[Hashtable] Resolve-JercResources [Hashtable]$jercResources`**  
+Returns hashtable with aspects resolved.
+
+**`[Hashtable] Get-JercResources [string[]]$jercFiles`**  
+Returns resources with fully resolved values.
+
+**`[Hashtable] Get-JercResources [Hashtable]$jercResources`**  
+Returns resources with fully resolved values.
 
 ## Usage
 ### Installation

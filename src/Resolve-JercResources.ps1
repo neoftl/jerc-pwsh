@@ -10,8 +10,8 @@ Jerc templates will not be transformed.
 This command is intended for use in diagnosing unexpected configuration values.
 For actual use of Jerc resources, see the Get-JercResources command.
 
-.PARAMETER Files
-The Jerc files (JSON) to be processed.
+.PARAMETER FilesOrHashtable
+The array of Jerc files (JSON) to be processed, or a hashtable of prepared resources.
 
 .EXAMPLE
 Resolve-JercResources './resources.jsonc'
@@ -22,8 +22,21 @@ Get-JercResources
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Resolve-JercResources ([string[]]$Files) {
-    $config = (Resolve-JercFiles $Files)
+function Resolve-JercResources ($FilesOrHashtable) {
+    if ($FilesOrHashtable -is [string[]]) {
+        $config = [hashtable](Resolve-JercFiles $FilesOrHashtable)
+    } elseif ($FilesOrHashtable -is [hashtable]) {
+        $config = [hashtable]$FilesOrHashtable
+    } else {
+        Write-Error "Unsupported parameter type '$($FilesOrHashtable.GetType())'."
+        return
+    }
+    if (-not $config.ContainsKey('aspects')) {
+        $config.'aspects' = @{}
+    }
+    if (-not $config.ContainsKey('resources')) {
+        $config.'resources' = @{}
+    }
 
     @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
         $config.resources.Remove($_)
