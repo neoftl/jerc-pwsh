@@ -17,7 +17,6 @@ Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
 function Get-JercResources ($FilesOrHashtables) {
     $resources = [hashtable](Resolve-JercResources $FilesOrHashtables)
-
     $resources.Keys | ForEach-Object {
         $resource = $resources[$_]
         $resource['.key'] = $_

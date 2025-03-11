@@ -23,43 +23,14 @@ Get-JercResources
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
 function Resolve-JercResources ($FilesOrHashtables) {
-    if ($FilesOrHashtables -is [string] -or ($FilesOrHashtables -is [array] -and $FilesOrHashtables[0] -is [string])) {
-        $config = [hashtable](Resolve-JercFiles $FilesOrHashtables)
-    }
-    elseif ($FilesOrHashtables -is [hashtable]) {
-        $config = [hashtable]$FilesOrHashtables
-    }
-    elseif ($FilesOrHashtables -is [array] -and $FilesOrHashtables[0] -is [hashtable]) {
-        $config = [hashtable]$FilesOrHashtables[0]
-    }
-    else {
-        Write-Error "Unsupported parameter type '$(($FilesOrHashtables)?.GetType())'."
-        return
-    }
+    $config = [hashtable](Resolve-JercFiles $FilesOrHashtables)
     if (-not $config.ContainsKey('aspects')) {
         $config.'aspects' = @{}
     }
     if (-not $config.ContainsKey('resources')) {
         $config.'resources' = @{}
     }
-    if ($FilesOrHashtables -is [array]) {
-        $FilesOrHashtables[1..$FilesOrHashtables.Length] | ForEach-Object {
-            if ($_ -isnot [hashtable]) {
-                Write-Error "Unsupported parameter type '$($_.GetType())'."
-                exit
-            }
-            if ($_.ContainsKey('aspects')) {
-                $config.aspects = (_applyStructure $config.aspects $_.aspects)
-            }
-            if ($_.ContainsKey('resources')) {
-                $config.resources = (_applyStructure $config.resources $_.resources)
-            }
-        }
-    }
 
-    @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
-        $config.resources.Remove($_)
-    }
     $config.resources.Keys | ForEach-Object {
         Write-Debug "Resolving resource '$_'."
         $key = $_

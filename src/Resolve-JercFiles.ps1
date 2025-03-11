@@ -10,8 +10,8 @@ Jerc templates will not be transformed.
 This command is intended for use in diagnosing unexpected configuration values.
 For actual use of Jerc resources, see the Get-JercResources command.
 
-.PARAMETER Files
-The Jerc files (JSON) to be processed.
+.PARAMETER FilesOrHashtables
+The array of Jerc files (JSON) or hashtables to be processed.
 
 .EXAMPLE
 Resolve-JercFiles './resources.jsonc'
@@ -22,60 +22,68 @@ Get-JercResources
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Resolve-JercFiles ([string[]]$Files) {
-    $File = [IO.FileInfo]([IO.Path]::Combine($PWD, $Files[0]))
-    if (-not $File.Exists) {
-        Write-Error "Could not find configuration file '$($Files[0])'."
-        return $null
+function Resolve-JercFiles ($FilesOrHashtables) {
+    if ($FilesOrHashtables -isnot [array]) {
+        $FilesOrHashtables = @($FilesOrHashtables)
     }
 
-    $includes = @()
-    if ($Files.Count -gt 1) {
-        $includes = $Files[1..($Files.Count - 1)]
+    if ($FilesOrHashtables[0] -is [hashtable]) {
+        $config = [hashtable]$FilesOrHashtables[0]
+    } else {
+        $File = [IO.FileInfo]([IO.Path]::Combine($PWD, $FilesOrHashtables[0]))
+        if (-not $File.Exists) {
+            Write-Error "Could not find configuration file '$($FilesOrHashtables[0])'."
+            return $null
+        }
+
+        $json = (Get-Content $File.FullName -Raw)
+        $config = (ConvertFrom-Json $json -AsHashtable)
+        if ($config -isnot [hashtable]) {
+            Write-Warning "Configuration file is not valid JSON '$($File.FullName)'."
+            return
+        }
+        Write-Debug "Including file $($File.FullName)"
     }
 
-    Write-Debug "Including file $($File.FullName)"
-
-    $json = (Get-Content $File.FullName -Raw)
-    $config = (ConvertFrom-Json $json -AsHashtable)
-    if (-not $inc -is [Hashtable]) {
-        Write-Warning "Configuration file is not valid JSON '$($File.FullName)'."
-        return
-    }
     if (-not $config.ContainsKey('aspects')) {
         $config.'aspects' = @{}
     }
     if (-not $config.ContainsKey('resources')) {
         $config.'resources' = @{}
     }
-
-    # Include additional files
-    if ($includes) {
-        if (-not ($config.'.include' -is [array])) {
-            $config.'.include' = @()
-        }
-        $config.'.include' += $includes
+    if (-not $config.'.include') {
+        $config.'.include' = @()
     }
 
+    # Include additional items
+    $includes = @($config.'.include')
+    if ($FilesOrHashtables.Count -gt 1) {
+        $includes += $FilesOrHashtables[1..($FilesOrHashtables.Count - 1)]
+    }
+    $config.Remove('.include')
+
     # Resolve includes
-    if ($config.'.include') {
-        @($config.'.include') | ForEach-Object {
-            $path = [IO.Path]::Combine($File.DirectoryName, $_)
-            $inc = (Resolve-JercFiles $path)
-            if (-not $inc -is [Hashtable]) {
-                Write-Warning "Included invalid JSON file '$path'."
-                return
+    $includes | ForEach-Object {
+        $item = $_
+        if ($item -isnot [hashtable]) {
+            $item = [IO.Path]::Combine($File.DirectoryName, $_)
+        }
+        $inc = (Resolve-JercFiles $item)
+        if ($inc -isnot [hashtable]) {
+            Write-Warning "Included invalid JSON file '$path'."
+            return
+        }
+        if ($inc) {
+            if ($inc.ContainsKey('aspects')) {
+                $config.aspects = (_applyStructure $config.aspects $inc.aspects)
             }
-            if ($inc) {
-                if ($inc.ContainsKey('aspects')) {
-                    $config.aspects = (_applyStructure $config.aspects $inc.aspects)
-                }
-                if ($inc.ContainsKey('resources')) {
-                    $config.resources = (_applyStructure $config.resources $inc.resources)
-                }
+            if ($inc.ContainsKey('resources')) {
+                $config.resources = (_applyStructure $config.resources $inc.resources)
             }
         }
-        $config.Remove('.include')
+    }
+    @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
+        $config.resources.Remove($_)
     }
 
     return $config
