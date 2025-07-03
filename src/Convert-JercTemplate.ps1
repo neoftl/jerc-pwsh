@@ -187,28 +187,39 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
         $rem.Remove(0, $count + $extra) | Out-Null
     }
 
-    $result = ''
-    while ($rem.Length) {
-        # Jump to next template
-        $idx = (_indexOf $rem ("$TemplateStart{"))
-        if ($idx -lt 0 -or $idx -ge $rem.Length - $TemplateStart.Length - 1) {
-            return "$result$rem"
-        }
-        (shift ([ref]$result) $idx)
-
-        # Escape
-        $end = $TemplateStart.Length + 1
-        if ($rem[$end] -eq '{') {
-            (shift ([ref]$result) $end 1)
-            continue
-        }
-
-        # Parse template
-        $rem.Remove(0, $TemplateStart.Length) | Out-Null
-        $result += (nextSymbol)
+    if ($script:_parserDepth -ge 100) {
+        Write-Warning "[Jerc] Maximum depth reached. Remaining template: $Text"
+        return ''
     }
-    return $result
+    $script:_parserDepth += 1
+    try {
+        $result = ''
+        while ($rem.Length) {
+            # Jump to next template
+            $idx = (_indexOf $rem ("$TemplateStart{"))
+            if ($idx -lt 0 -or $idx -ge $rem.Length - $TemplateStart.Length - 1) {
+                return "$result$rem"
+            }
+            (shift ([ref]$result) $idx)
+
+            # Escape
+            $end = $TemplateStart.Length + 1
+            if ($rem[$end] -eq '{') {
+                (shift ([ref]$result) $end 1)
+                continue
+            }
+
+            # Parse template
+            $rem.Remove(0, $TemplateStart.Length) | Out-Null
+            $result += (nextSymbol)
+        }
+        return $result
+    } finally {
+        $script:_parserDepth -= 1
+    }
 }
 Export-ModuleMember -Function Convert-JercTemplate
+
+$script:_parserDepth = 0
 
 . $PSScriptRoot/_functions.ps1
