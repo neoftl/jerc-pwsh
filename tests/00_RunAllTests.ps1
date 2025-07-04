@@ -1,10 +1,11 @@
 param (
     [string]$Filter = $null,
     [switch]$ContinueOnFail,
+    [switch]$HideSkipped,
     [switch]$Debug
 )
 
-. $PSScriptRoot/_JercTestFramework.ps1 -TestIdFilter:$Filter -ContinueOnFail:$ContinueOnFail -Debug:$Debug
+. $PSScriptRoot/_JercTestFramework.ps1 -TestIdFilter:$Filter -ContinueOnFail:$ContinueOnFail -Debug:$Debug -HideSkipped:$HideSkipped
 
 Remove-Module Jerc -ErrorAction SilentlyContinue
 Import-Module $PSScriptRoot/../src/Jerc.psm1

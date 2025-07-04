@@ -34,6 +34,12 @@
     }'  -json2 '{
         "resources": { "Test": { "Actual": "OK" } }
     }'  -Expected $null
+    Test-JercParser 'I006' 'Resource can be removed by super' -json1 '{
+        ".include": [ "file2.json" ],
+        "resources": { "Test": null }
+    }'  -json2 '{
+        "resources": { "Test": { "Actual": "OK" } }
+    }'  -Expected "Missing 'Test' resource."
 
     # Aspects
     Test-JercParser 'I100' 'New aspect is included' -json1 '{

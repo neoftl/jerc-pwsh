@@ -4,6 +4,7 @@
 
 $global:PwshTest = @{
     'TestIdFilter' = $null;
+    'HideSkipped'  = $false;
     'ThrowExceptions' = $false;
     'TotalTestsRun'    = 0;
     'TestFailureCount' = 0;
@@ -47,8 +48,10 @@ $global:PwshTest = @{
         }
 
         if ($Id -and $PwshTest.TestIdFilter -and -not ($Id -imatch $PwshTest.TestIdFilter)) {
-            (printResult 'SKIP' DarkGray)
-            Write-Host
+            if (-not $PwshTest.HideSkipped) {
+                (printResult 'SKIP' DarkGray)
+                Write-Host
+            }
             return
         }
 

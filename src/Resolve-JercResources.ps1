@@ -35,6 +35,10 @@ function Resolve-JercResources ($FilesOrHashtables) {
         Write-Debug "Resolving resource '$_'."
         $key = $_
         $resource = $config.resources[$_]
+        if ($null -eq $resource) {
+            # Remove resource
+            return
+        }
         if (-not $resource.ContainsKey('.aspects')) {
             $resource.'.aspects' = [string[]]::new(0)
         }
@@ -52,7 +56,7 @@ function Resolve-JercResources ($FilesOrHashtables) {
             }
             elseif ($resource[$_] -is [hashtable]) {
                 Write-Debug "Merging aspect value '$_'."
-                $resource[$_] = (_applyStructure $resource[$_] $aspectValues[$_] $true)
+                $resource[$_] = (_applyStructure $resource[$_] $aspectValues[$_] $true $true)
             }
             elseif ($null -eq $resource[$_]) {
                 Write-Debug "Applying aspect value '$_'."
@@ -87,7 +91,7 @@ function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtabl
             $result = (_applyAspects $aspects[$_]['.aspects'] $aspects $result)
         }
 
-        $result = (_applyStructure $result $aspects[$_] $true)
+        $result = (_applyStructure $result $aspects[$_] $true $true)
         Write-Debug "  Keys after '$_': $($result.Keys.Count)"
         #Write-Debug (ConvertTo-Json $result)
     }

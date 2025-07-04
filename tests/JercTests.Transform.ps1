@@ -48,5 +48,8 @@
     } '[${Value}]' '[{
   "A": 123
 }]'
+    Test-JercTransformer 'T011' 'Will fail in infinite recursion' @{
+        "Value" = "{Value}";
+    } '[${Value}]' '[]' -DisableWarnings
 
 })

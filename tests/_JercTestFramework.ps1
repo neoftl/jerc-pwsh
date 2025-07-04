@@ -1,12 +1,14 @@
 param (
     [string]$TestIdFilter = $null,
     [switch]$ContinueOnFail,
+    [switch]$HideSkipped,
     [switch]$Debug
 )
 
 . $PSScriptRoot/_PwshTestFramework.ps1
 
 $PwshTest.TestIdFilter = $TestIdFilter
+$PwshTest.HideSkipped = $HideSkipped
 $PwshTest.ThrowExceptions = -not $ContinueOnFail
 
 function Test-JercResources ([string]$Id, [string]$Title, [string]$json1, $ResultLogic, [string]$json2 = $null, [bool]$enabled = $true) {
@@ -14,16 +16,17 @@ function Test-JercResources ([string]$Id, [string]$Title, [string]$json1, $Resul
     $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
     
     if (-not $enabled -or (-not $ContinueOnFail -and $PwshTest.TestFailureCount -gt 0)) { return }
-    Set-Content "$PSScriptRoot/file1.json" $json1
+    $FN = [Guid]::NewGuid().ToString()
+    Set-Content "$PSScriptRoot/$NF.json" $json1
     if ($json2) { Set-Content "$PSScriptRoot/file2.json" $json2 }
     (&$PwshTest.Run -Id $Id -Title $Title -Expected $true `
         -TestLogic {
-            $result = (Get-JercResources "$PSScriptRoot/file1.json")
+            $result = (Get-JercResources "$PSScriptRoot/$NF.json")
             # TODO: detect warnings
             $global:_lastTestResult = $result
             return (&$ResultLogic $result)
         })
-    Remove-Item "$PSScriptRoot/file1.json"
+    Remove-Item "$PSScriptRoot/$NF.json"
     Remove-Item "$PSScriptRoot/file2.json" -ErrorAction SilentlyContinue
 
     $global:ErrorActionPreference = 'Stop'
@@ -35,11 +38,12 @@ function Test-JercParser ([string]$Id, [string]$Title, [string]$json1, $Expected
     $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
     
     if (-not $enabled -or (-not $ContinueOnFail -and $PwshTest.TestFailureCount -gt 0)) { return }
-    Set-Content "$PSScriptRoot/file1.json" $json1
+    $FN = [Guid]::NewGuid().ToString()
+    Set-Content "$PSScriptRoot/$NF.json" $json1
     if ($json2) { Set-Content "$PSScriptRoot/file2.json" $json2 }
     (&$PwshTest.Run -Id $Id -Title $Title -Expected $Expected `
         -TestLogic {
-            $result = (Get-JercResources "$PSScriptRoot/file1.json")
+            $result = (Get-JercResources "$PSScriptRoot/$NF.json")
             # TODO: detect warnings
             $global:_lastTestResult = $result
             $result = ($result.Test ? $result.Test.Actual : "Missing 'Test' resource.")
@@ -48,14 +52,15 @@ function Test-JercParser ([string]$Id, [string]$Title, [string]$json1, $Expected
             }
             return $result
         })
-    Remove-Item "$PSScriptRoot/file1.json"
+    Remove-Item "$PSScriptRoot/$NF.json"
     Remove-Item "$PSScriptRoot/file2.json" -ErrorAction SilentlyContinue
 
     $global:ErrorActionPreference = 'Stop'
     $global:DebugPreference = 'SilentlyContinue'
 }
 
-function Test-JercTransformer ([string]$Id, [string]$Title, [Hashtable]$resource, [string]$template, $Expected, [bool]$enabled = $true) {
+function Test-JercTransformer ([string]$Id, [string]$Title, [Hashtable]$resource, [string]$template, $Expected, [bool]$enabled = $true, [switch]$DisableWarnings) {
+    $global:WarningPreference = $DisableWarnings ? 'SilentlyContinue' : 'Continue'
     $global:ErrorActionPreference = $ContinueOnFail ? 'Continue' : 'Stop'
     $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
     
@@ -68,6 +73,7 @@ function Test-JercTransformer ([string]$Id, [string]$Title, [Hashtable]$resource
             return $result
         })
 
+    $global:WarningPreference = 'Continue'
     $global:ErrorActionPreference = 'Stop'
     $global:DebugPreference = 'SilentlyContinue'
 }

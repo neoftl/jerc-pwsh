@@ -91,7 +91,7 @@ function Resolve-JercFiles ($FilesOrHashtables) {
 Export-ModuleMember -Function Resolve-JercFiles
 
 # Applies keys from 'new' dictionary on to 'base'
-function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride = $false) {
+function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride = $false, [bool]$child = $false) {
     $base = $base.Clone()
     $new.Keys | Where-Object { $_ -and $_ -ne '.include' } | ForEach-Object {
         $val = $new[$_]
@@ -108,8 +108,13 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
                 $base[$_] = (_applyStructure $base[$_] $val $allowOverride $true)
             }
             elseif ($null -eq $base[$_]) {
-                Write-Debug "  Setting NULL key '$_' to '$val'."
-                $base[$_] = $val
+                if ($child) {
+                    Write-Debug "  Setting NULL key '$_' to '$val'."
+                    $base[$_] = $val
+                } else {
+                    Write-Debug "  Removing key '$_' with NULL value."
+                    $base.Remove($_)
+                }
             }
             elseif ($allowOverride -and $null -ne $val) {
                 Write-Debug "  Overriding key '$_' to '$val'."
