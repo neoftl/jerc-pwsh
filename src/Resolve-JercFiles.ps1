@@ -96,9 +96,7 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
     $new.Keys | Where-Object { $_ -and $_ -ne '.include' } | ForEach-Object {
         $val = $new[$_]
         if ($_ -eq '.aspects' -and $base[$_] -is [Array]) {
-            $list = [Collections.ArrayList]@($base[$_])
-            $list.AddRange(@($val))
-            $base[$_] = $list
+            $base[$_] = @($base[$_]) + @($val)
             return
         }
 
