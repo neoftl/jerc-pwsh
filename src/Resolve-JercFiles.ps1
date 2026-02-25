@@ -23,22 +23,45 @@ Get-JercResources
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
 
+function _combineFile($config, $file, $type) {
+    $inc = (_resolveJercFile $file $type)
+    if ($inc.aspects -is [hashtable]) {
+        Write-Debug "Merging $($inc.aspects.Count) aspects"
+        $config.aspects = (_applyStructure $config.aspects $inc.aspects)
+    }
+    if ($inc.resources -is [hashtable]) {
+        Write-Debug "Merging $($inc.resources.Count) resources"
+        $config.resources = (_applyStructure $config.resources $inc.resources)
+    }
+    return $config
+}
+
 function _resolveJercFile($path, [string]$type = $null) {
     $dir = $PWD
     if ($path -isnot [hashtable]) {
-        $file = [IO.FileInfo]([IO.Path]::Combine($dir, $path))
-        if (-not $file.Exists) {
-            Write-Error "Could not find configuration file: $path"
-            return $null
-        }
-        $dir = $file.DirectoryName
+        $path = [IO.Path]::Combine($dir, $path)
+        if ($path.Contains('*')) {
+            $files = (Get-ChildItem $path -Filter "*.json*") | Sort-Object { $_.BaseName }
+            Write-Debug "Found $($files.Count) files under '$path'."
+            $config = @{ }
+            foreach ($file in $files) {
+                $config = (_combineFile $config $file $type)
+            }
+        } else {
+            $file = [IO.FileInfo]([IO.Path]::Combine($dir, $path))
+            if (-not $file.Exists) {
+                Write-Error "Could not find configuration file: $path"
+                return $null
+            }
+            $dir = $file.DirectoryName
 
-        $config = Get-Content $file | ConvertFrom-Json -AsHashtable
-        if ($config -isnot [hashtable]) {
-            Write-Warning "Configuration file is not a JSON object: $path"
-            return
+            $config = Get-Content $file | ConvertFrom-Json -AsHashtable
+            if ($config -isnot [hashtable]) {
+                Write-Warning "Configuration file is not a JSON object: $path"
+                return
+            }
+            Write-Debug "Including file $($File.FullName)"
         }
-        Write-Debug "Including file $($File.FullName)"
     }
     else {
         $config = $path
@@ -73,12 +96,7 @@ function _resolveJercFile($path, [string]$type = $null) {
     if ($config.aspects -is [hashtable] -and $config.aspects.'.include') {
         foreach ($item in @($config.aspects.'.include')) {
             $path = [IO.Path]::Combine($File.DirectoryName, $item)
-            $aspects = (_resolveJercFile $path 'aspects')
-            if ($aspects -isnot [hashtable]) {
-                Write-Warning "Included invalid aspects JSON file '$path'."
-                continue
-            }
-            $config.aspects = (_applyStructure $config.aspects $aspects)
+            $config = (_combineFile $config $path 'aspects')
         }
         $config.aspects.Remove('.include')
     }
@@ -88,12 +106,7 @@ function _resolveJercFile($path, [string]$type = $null) {
         if ($config.resources.'.include') {
             foreach ($item in @($config.resources.'.include')) {
                 $path = [IO.Path]::Combine($File.DirectoryName, $item)
-                $resources = (_resolveJercFile $path 'resources')
-                if ($resources -isnot [hashtable]) {
-                    Write-Warning "Included invalid resources JSON file '$path'."
-                    continue
-                }
-                $config.resources = (_applyStructure $config.resources $resources)
+                $config = (_combineFile $config $path 'resources')
             }
             $config.resources.Remove('.include')
         }
@@ -104,9 +117,6 @@ function _resolveJercFile($path, [string]$type = $null) {
         }
     }
 
-    if ($type) {
-        return $config[$type]
-    }
     return $config
 }
 
@@ -121,6 +131,11 @@ function Resolve-JercFiles ($FilesOrHashtables) {
     }
     if ($config.resources -isnot [hashtable]) {
         $config.resources = @{}
+    }
+
+    # Combine all files
+    foreach ($file in $fileArray[1..($fileArray.Count - 1)]) {
+        $config = (_combineFile $config $file)
     }
 
     # Remove blank keys
