@@ -22,66 +22,108 @@ Get-JercResources
 .LINK
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
-function Resolve-JercFiles ($FilesOrHashtables) {
-    if ($FilesOrHashtables -isnot [array]) {
-        $FilesOrHashtables = @($FilesOrHashtables)
-    }
 
-    if ($FilesOrHashtables[0] -is [hashtable]) {
-        $config = [hashtable]$FilesOrHashtables[0]
-    } else {
-        $File = [IO.FileInfo]([IO.Path]::Combine($PWD, $FilesOrHashtables[0]))
-        if (-not $File.Exists) {
-            Write-Error "Could not find configuration file '$($FilesOrHashtables[0])'."
+function _resolveJercFile($path, [string]$type = $null) {
+    $dir = $PWD
+    if ($path -isnot [hashtable]) {
+        $file = [IO.FileInfo]([IO.Path]::Combine($dir, $path))
+        if (-not $file.Exists) {
+            Write-Error "Could not find configuration file: $path"
             return $null
         }
+        $dir = $file.DirectoryName
 
-        $json = (Get-Content $File.FullName -Raw)
-        $config = (ConvertFrom-Json $json -AsHashtable)
+        $config = Get-Content $file | ConvertFrom-Json -AsHashtable
         if ($config -isnot [hashtable]) {
-            Write-Warning "Configuration file is not valid JSON '$($File.FullName)'."
+            Write-Warning "Configuration file is not a JSON object: $path"
             return
         }
         Write-Debug "Including file $($File.FullName)"
     }
+    else {
+        $config = $path
+    }
 
-    if (-not $config.ContainsKey('aspects')) {
-        $config.'aspects' = @{}
+    if ($type) {
+        $config = @{ "$type" = $config }
     }
-    if (-not $config.ContainsKey('resources')) {
-        $config.'resources' = @{}
-    }
+
+    # Resolve includes, relative to this file
     if (-not $config.'.include') {
         $config.'.include' = @()
     }
-
-    # Include additional items
-    $includes = @($config.'.include')
-    if ($FilesOrHashtables.Count -gt 1) {
-        $includes += $FilesOrHashtables[1..($FilesOrHashtables.Count - 1)]
-    }
-    $config.Remove('.include')
-
-    # Resolve includes
-    $includes | ForEach-Object {
-        $item = $_
-        if ($item -isnot [hashtable]) {
-            $item = [IO.Path]::Combine($File.DirectoryName, $_)
-        }
-        $inc = (Resolve-JercFiles $item)
+    foreach ($item in @($config.'.include')) {
+        $path = [IO.Path]::Combine($dir, $item)
+        $inc = (_resolveJercFile $path)
         if ($inc -isnot [hashtable]) {
             Write-Warning "Included invalid JSON file '$path'."
-            return
+            continue
         }
-        if ($inc) {
-            if ($inc.ContainsKey('aspects')) {
-                $config.aspects = (_applyStructure $config.aspects $inc.aspects)
-            }
-            if ($inc.ContainsKey('resources')) {
-                $config.resources = (_applyStructure $config.resources $inc.resources)
-            }
+        if ($inc.ContainsKey('aspects')) {
+            Write-Debug "Merging $($inc.aspects.Count) aspects"
+            $config.aspects = (_applyStructure $config.aspects $inc.aspects)
+        }
+        if ($inc.ContainsKey('resources')) {
+            Write-Debug "Merging $($inc.resources.Count) resources"
+            $config.resources = (_applyStructure $config.resources $inc.resources)
         }
     }
+
+    # Include additional aspects
+    if ($config.aspects -is [hashtable] -and $config.aspects.'.include') {
+        foreach ($item in @($config.aspects.'.include')) {
+            $path = [IO.Path]::Combine($File.DirectoryName, $item)
+            $aspects = (_resolveJercFile $path 'aspects')
+            if ($aspects -isnot [hashtable]) {
+                Write-Warning "Included invalid aspects JSON file '$path'."
+                continue
+            }
+            $config.aspects = (_applyStructure $config.aspects $aspects)
+        }
+        $config.aspects.Remove('.include')
+    }
+
+    if ($config.resources -is [hashtable]) {
+        # Include additional resources
+        if ($config.resources.'.include') {
+            foreach ($item in @($config.resources.'.include')) {
+                $path = [IO.Path]::Combine($File.DirectoryName, $item)
+                $resources = (_resolveJercFile $path 'resources')
+                if ($resources -isnot [hashtable]) {
+                    Write-Warning "Included invalid resources JSON file '$path'."
+                    continue
+                }
+                $config.resources = (_applyStructure $config.resources $resources)
+            }
+            $config.resources.Remove('.include')
+        }
+
+        # Remove blank keys
+        @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
+            $config.resources.Remove($_)
+        }
+    }
+
+    if ($type) {
+        return $config[$type]
+    }
+    return $config
+}
+
+# Resolve each Jerc file and combine
+function Resolve-JercFiles ($FilesOrHashtables) {
+    $fileArray = @($FilesOrHashtables)
+    $config = (_resolveJercFile $fileArray[0])
+
+    # Ensure structure
+    if ($config.aspects -isnot [hashtable]) {
+        $config.aspects = @{}
+    }
+    if ($config.resources -isnot [hashtable]) {
+        $config.resources = @{}
+    }
+
+    # Remove blank keys
     @($config.resources.Keys | Where-Object { -not $_ }) | ForEach-Object {
         $config.resources.Remove($_)
     }
@@ -92,7 +134,7 @@ Export-ModuleMember -Function Resolve-JercFiles
 
 # Applies keys from 'new' dictionary on to 'base'
 function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride = $false, [bool]$child = $false) {
-    $base = $base.Clone()
+    $base = $base ? $base.Clone() : @{}
     $new.Keys | Where-Object { $_ -and $_ -ne '.include' } | ForEach-Object {
         $val = $new[$_]
         if ($_ -eq '.aspects' -and $base[$_] -is [Array]) {
@@ -109,7 +151,8 @@ function _applyStructure([Hashtable]$base, [Hashtable]$new, [bool]$allowOverride
                 if ($child) {
                     Write-Debug "  Setting NULL key '$_' to '$val'."
                     $base[$_] = $val
-                } else {
+                }
+                else {
                     Write-Debug "  Removing key '$_' with NULL value."
                     $base.Remove($_)
                 }

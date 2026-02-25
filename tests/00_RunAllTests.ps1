@@ -7,8 +7,7 @@ param (
 
 . $PSScriptRoot/_JercTestFramework.ps1 -TestIdFilter:$Filter -ContinueOnFail:$ContinueOnFail -Debug:$Debug -HideSkipped:$HideSkipped
 
-Remove-Module Jerc -ErrorAction SilentlyContinue
-Import-Module $PSScriptRoot/../src/Jerc.psm1
+Import-Module $PSScriptRoot/../src/Jerc.psm1 -Force
 
 . $PSScriptRoot/JercTests.Basics.ps1
 . $PSScriptRoot/JercTests.Aspects.ps1

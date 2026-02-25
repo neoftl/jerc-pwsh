@@ -77,4 +77,17 @@
         "aspects": { "Test": { "Actual": "OK" } }
     }'  -Expected $null
 
+    # Subincludes
+    Test-JercParser 'I200' 'Sub-include: aspects' -json1 '{
+        "aspects": { ".include": "file2.json" },
+        "resources": { "Test": { ".aspects": "ATest", "Actual": "OK" } }
+    }'  -json2 '{
+        "ATest": { "Actual": "OK" }
+    }'  -Expected 'OK'
+    Test-JercParser 'I201' 'Sub-include: resources' -json1 '{
+        "resources": { ".include": "file2.json" }
+    }'  -json2 '{
+        "Test": { "Actual": "OK" }
+    }'  -Expected 'OK'
+
 })
