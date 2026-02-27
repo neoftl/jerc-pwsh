@@ -23,8 +23,7 @@ Get-JercResources
 Implementation information: https://github.com/neoftl/jerc-pwsh
 #>
 
-function _combineFile($config, $file, $type) {
-    $inc = (_resolveJercFile $file $type)
+function _combineFile([hashtable]$config, [hashtable]$inc) {
     if ($inc.aspects -is [hashtable]) {
         Write-Debug "Merging $($inc.aspects.Count) aspects"
         $config.aspects = (_applyStructure $config.aspects $inc.aspects)
@@ -36,31 +35,35 @@ function _combineFile($config, $file, $type) {
     return $config
 }
 
-function _resolveJercFile($path, [string]$type = $null) {
-    $dir = $PWD
+function _resolveJercFile($path, [string]$type, [string]$dir) {
     if ($path -isnot [hashtable]) {
-        $path = [IO.Path]::Combine($dir, $path)
+        $path = [IO.Path]::GetFullPath("$path", $dir)
         if ($path.Contains('*')) {
-            $files = (Get-ChildItem $path -Filter "*.json*") | Sort-Object { $_.BaseName }
+            $files = @(Get-ChildItem $path -Filter "*.json*") | Sort-Object { $_.BaseName }
             Write-Debug "Found $($files.Count) files under '$path'."
             $config = @{ }
             foreach ($file in $files) {
-                $config = (_combineFile $config $file $type)
+                $inc = (_resolveJercFile $file $type $file.DirectoryName)
+                $config = (_combineFile $config $inc)
+            }
+            if ($type) {
+                $config = $config[$type]
             }
         } else {
-            $file = [IO.FileInfo]([IO.Path]::Combine($dir, $path))
+            $file = [IO.FileInfo]$path
             if (-not $file.Exists) {
                 Write-Error "Could not find configuration file: $path"
-                return $null
+                return @{}
             }
             $dir = $file.DirectoryName
 
-            $config = Get-Content $file | ConvertFrom-Json -AsHashtable
+            $config = (Get-Content $file) | ConvertFrom-Json -AsHashtable
+            if ($config -is [array] -and $config.Count -gt 0 -and $null -eq $config[0]) { $config = $config[1] } # Fix issue with pre-object comments in JSONC
             if ($config -isnot [hashtable]) {
                 Write-Warning "Configuration file is not a JSON object: $path"
-                return
+                return @{}
             }
-            Write-Debug "Including file $($File.FullName)"
+            Write-Debug "Including file '$path'."
         }
     }
     else {
@@ -76,27 +79,16 @@ function _resolveJercFile($path, [string]$type = $null) {
         $config.'.include' = @()
     }
     foreach ($item in @($config.'.include')) {
-        $path = [IO.Path]::Combine($dir, $item)
-        $inc = (_resolveJercFile $path)
-        if ($inc -isnot [hashtable]) {
-            Write-Warning "Included invalid JSON file '$path'."
-            continue
-        }
-        if ($inc.ContainsKey('aspects')) {
-            Write-Debug "Merging $($inc.aspects.Count) aspects"
-            $config.aspects = (_applyStructure $config.aspects $inc.aspects)
-        }
-        if ($inc.ContainsKey('resources')) {
-            Write-Debug "Merging $($inc.resources.Count) resources"
-            $config.resources = (_applyStructure $config.resources $inc.resources)
-        }
+        $inc = (_resolveJercFile $item $null $dir)
+        $config = (_combineFile $config $inc)
     }
+    $config.Remove('.include')
 
     # Include additional aspects
     if ($config.aspects -is [hashtable] -and $config.aspects.'.include') {
         foreach ($item in @($config.aspects.'.include')) {
-            $path = [IO.Path]::Combine($File.DirectoryName, $item)
-            $config = (_combineFile $config $path 'aspects')
+            $inc = (_resolveJercFile $item 'aspects' $dir)
+            $config = (_combineFile $config $inc)
         }
         $config.aspects.Remove('.include')
     }
@@ -105,8 +97,8 @@ function _resolveJercFile($path, [string]$type = $null) {
         # Include additional resources
         if ($config.resources.'.include') {
             foreach ($item in @($config.resources.'.include')) {
-                $path = [IO.Path]::Combine($File.DirectoryName, $item)
-                $config = (_combineFile $config $path 'resources')
+                $inc = (_resolveJercFile $item 'resources' $dir)
+                $config = (_combineFile $config $inc)
             }
             $config.resources.Remove('.include')
         }
@@ -123,7 +115,7 @@ function _resolveJercFile($path, [string]$type = $null) {
 # Resolve each Jerc file and combine
 function Resolve-JercFiles ($FilesOrHashtables) {
     $fileArray = @($FilesOrHashtables)
-    $config = (_resolveJercFile $fileArray[0])
+    $config = (_resolveJercFile $fileArray[0] $null $PWD)
 
     # Ensure structure
     if ($config.aspects -isnot [hashtable]) {
@@ -134,8 +126,11 @@ function Resolve-JercFiles ($FilesOrHashtables) {
     }
 
     # Combine all files
-    foreach ($file in $fileArray[1..($fileArray.Count - 1)]) {
-        $config = (_combineFile $config $file)
+    if ($fileArray.Count -gt 1 ) {
+        foreach ($file in $fileArray[1..($fileArray.Count - 1)]) {
+            $inc = (_resolveJercFile $file $null $PWD)
+            $config = (_combineFile $config $inc)
+        }
     }
 
     # Remove blank keys

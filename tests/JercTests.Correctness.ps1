@@ -58,7 +58,7 @@
         return $result
     }
 
-    Test-JercFiles 'C1.2' 'Correctness test 1.2' -Files @{
+    Test-JercFiles 'C1.2' 'Correctness test 1.2' -Files ([ordered]@{
         # Applies in order: Root, File2, File4, File5, File3, File5*
         'File1' = '{ // Root
             ".include": [ "File2.json", "File3.json", "File5.json" ],
@@ -103,7 +103,7 @@
                 }
             }
         }'
-    } -ResultLogic { param ($resources)
+    }) -ResultLogic { param ($resources)
         $result = $resources.Result.Key0 -eq 'File4' `
             -and $resources.Result.Key1 -eq 'File1' `
             -and $resources.Result.Key2 -eq 'File2' `

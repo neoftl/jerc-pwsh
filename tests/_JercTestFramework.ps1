@@ -11,7 +11,7 @@ $PwshTest.TestIdFilter = $TestIdFilter
 $PwshTest.HideSkipped = $HideSkipped
 $PwshTest.ThrowExceptions = -not $ContinueOnFail
 
-function Test-JercFiles ([string]$Id, [string]$Title, [hashtable]$Files, $ResultLogic, [bool]$enabled = $true) {
+function Test-JercFiles ([string]$Id, [string]$Title, [System.Collections.Specialized.OrderedDictionary]$Files, $ResultLogic, [bool]$enabled = $true) {
     $global:ErrorActionPreference = $ContinueOnFail ? 'Continue' : 'Stop'
     $global:DebugPreference = $Debug ? 'Continue' : 'SilentlyContinue'
     

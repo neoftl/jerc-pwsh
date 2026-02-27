@@ -91,11 +91,11 @@
     }'  -Expected 'OK'
 
     # General
-    Test-JercFiles 'I300' 'Wildcard includes alphabetically' -Files @{
+    Test-JercFiles 'I300' 'Wildcard includes alphabetically' -Files ([ordered]@{
         'Root' = '{ ".include": "F*.json" }' # Note: No loop protection
         'File3' = '{ "resources": { "Test": { "B": true, "C": "3" } } }'
         'File2' = '{ "resources": { "Test": { "A": true, "C": "2" } } }'
-    } -ResultLogic { param ($resources)
+    }) -ResultLogic { param ($resources)
         return $resources.Test.A -and $resources.Test.B -and $resources.Test.C -eq '2'
     }
 
