@@ -52,14 +52,14 @@ function Resolve-JercResources ($FilesOrHashtables) {
         $aspectValues.Keys | Where-Object { $_ -ne '.aspects' } | Sort-Object -Unique | ForEach-Object {
             if (-not $resource.ContainsKey($_) `
                     -and $null -eq $aspectValues[$_]) {
-                Write-Warning "Resource '$key' was expected to override aspect value '$_'."
+                Write-Warning "  Resource '$key' was expected to override aspect value '$_'."
             }
             elseif ($resource[$_] -is [hashtable]) {
-                Write-Debug "Merging aspect value '$_'."
+                Write-Debug "  Merging aspect value '$_'."
                 $resource[$_] = (_applyStructure $resource[$_] $aspectValues[$_] $true $true)
             }
             elseif ($null -eq $resource[$_]) {
-                Write-Debug "Applying aspect value '$_'."
+                Write-Debug "  Applying aspect value '$_'."
                 $resource[$_] = $aspectValues[$_]
             }
         }
@@ -70,12 +70,12 @@ function Resolve-JercResources ($FilesOrHashtables) {
 Export-ModuleMember -Function Resolve-JercResources
 
 # Applies a set of aspects to an existing or new dictionary
-function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtable]$result = @{}) {
+function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtable]$result = @{}, [bool]$isRootApply = $true) {
     if ($aspects.ContainsKey('*')) {
         $aspectsToApply = (@('*') + $aspectsToApply)
     }
     
-    $aspectsToApply | Where-Object { $_ } | ForEach-Object {
+    $aspectsToApply | Where-Object { $_ -and ($_ -ne '*' -or $isRootApply) } | ForEach-Object {
         Write-Debug "Applying aspect '$_'."
         if (-not $aspects.ContainsKey($_)) {
             Write-Warning "Reference to unknown aspect '$_'."
@@ -88,7 +88,7 @@ function _applyAspects([string[]]$aspectsToApply, [Hashtable]$aspects, [Hashtabl
 
         Write-Debug "  Keys before '$_': $($result.Keys.Count)"
         if ($aspects[$_].ContainsKey('.aspects')) {
-            $result = (_applyAspects $aspects[$_]['.aspects'] $aspects $result)
+            $result = (_applyAspects $aspects[$_]['.aspects'] $aspects $result $false)
         }
 
         $result = (_applyStructure $result $aspects[$_] $true $true)

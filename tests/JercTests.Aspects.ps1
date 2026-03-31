@@ -82,4 +82,8 @@
         "aspects": { "*": { "object": { "One": 1 } }, "Aspect1": { "object": { "Two": 2 } } },
         "resources": { "AddKey": { ".aspects": [ "Aspect1" ] }, "Test": { "Actual": "{!}{object}" } }
     }' '{"One":1}'
+    Test-JercParser 'A021' 'Global aspect can include another aspect' '{
+        "aspects": { "*": { ".aspects": [ "Aspect1" ] }, "Aspect1": { "Actual": "OK" } },
+        "resources": { "Test": { } }
+    }' 'OK'
 })

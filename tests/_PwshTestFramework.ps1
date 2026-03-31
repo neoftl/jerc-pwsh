@@ -17,7 +17,7 @@ $global:PwshTest = @{
         $PwshTest.CurrentSuite = $null
     };
     'Run'              = {
-        param ([string]$Id, [string]$Title, $Expected, $TestLogic, [string]$FailMessage = $null)
+        param ([string]$Id, [string]$Title, $Expected, [scriptblock]$TestLogic, [string]$FailMessage = $null)
 
         function printResult($result, $resultColour, [bool]$clear = $false) {
             Write-Host "[" -NoNewline
