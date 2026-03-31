@@ -76,6 +76,13 @@
     }'  -json2 '{
         "aspects": { "Test": { "Actual": "OK" } }
     }'  -Expected $null
+    Test-JercParser 'I105' 'Global aspect includes' -json1 '{
+        ".include": [ "file2.json" ],
+        "aspects": { "*": { } },
+        "resources": { "Test": { } }
+    }'  -json2 '{
+        "aspects": { "*": { ".aspects": [ "Test2" ] }, "Test2": { "Actual": "OK" } }
+    }'  -Expected "OK"
 
     # Subincludes
     Test-JercParser 'I200' 'Sub-include: aspects' -json1 '{
