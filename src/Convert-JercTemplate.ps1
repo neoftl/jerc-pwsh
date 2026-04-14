@@ -81,11 +81,8 @@ function Convert-JercTemplate ([Parameter(ValueFromPipeline = $true)][string]$Te
                 break
             }
             if ($rem[$idx] -eq '{') {
-                if ($rem[$idx + 1] -eq '{') {
+                if (($idx + 1) -lt $rem.Length -and $rem[$idx + 1] -eq '{') {
                     $idx += 1
-                }
-                elseif ($rem[$idx + 1] -in $xChars -and $rem[$idx + 1] -eq '}') {
-                    $idx += 2
                 }
                 else {
                     $depth += 1

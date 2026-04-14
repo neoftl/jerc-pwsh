@@ -14,8 +14,8 @@ function _indexOf([Text.StringBuilder]$sb, [string]$value) {
             }
         }
         elseif ($matched -ne 0) {
+            $i -= $matched # Recheck from position after match start
             $matched = 0
-            $i -= 1 # Recheck
         }
     }
     return -1
